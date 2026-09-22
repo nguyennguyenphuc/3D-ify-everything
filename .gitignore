@@ -1,0 +1,10 @@
+.venv/
+vendor/
+data/
+.cache/
+__pycache__/
+.pytest_cache/
+web/node_modules/
+web/dist/
+.env
+*.pyc
