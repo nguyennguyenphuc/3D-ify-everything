@@ -1,0 +1,11 @@
+$ git fetch --quiet origin feature/courtyard-studio
+$ git reset --hard origin/feature/courtyard-studio
+HEAD is now at 579c7f4 Crop splats to the captured region when packaging
+$ python -m colab.pipeline run --source courtyard --name courtyard --stages package
+[13:19:41] package: Bắt đầu
+[13:21:13] tidy: splat.ply: 1,000,000 → 765,887 Gaussian
+[13:22:36] tidy: baseline.ply: 1,000,000 → 903,477 Gaussian
+[13:22:53] package: Đã chuẩn bị file cho GitHub release
+[13:22:55] package: Đã lưu /content/drive/MyDrive/courtyard-results/courtyard-20260924-132253.zip
+[13:22:55] package: Kết quả: /content/work/courtyard/enhance · /content/work/courtyard/results.zip (339.9 MiB)
+[13:22:55] package: Xong sau 194 giây

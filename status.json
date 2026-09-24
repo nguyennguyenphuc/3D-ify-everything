@@ -1,0 +1,40 @@
+{
+  "id": "20260924-131931-courtyard-package-f73a",
+  "state": "succeeded",
+  "cmd": "python -m colab.pipeline run --source courtyard --name courtyard --stages package",
+  "commit": "579c7f494980d992267c6febb47cdf71c543b2b1",
+  "started": "2026-09-24T13:19:41Z",
+  "finished": "2026-09-24T13:22:56Z",
+  "elapsed_seconds": 232,
+  "exit_code": 0,
+  "error": null,
+  "gpu": {
+    "name": "NVIDIA A100-SXM4-80GB",
+    "memory_total_mib": 81920,
+    "memory_used_mib": 0,
+    "utilization": 0
+  },
+  "log_total_lines": 11,
+  "tail_start": 0,
+  "branch": "colab-runs/20260924-131931-courtyard-package-f73a",
+  "published_commit": "21c8f97f9e07cd70cd689684c57d49fe162ed369",
+  "release": "colab-run-20260924-131931-courtyard-package-f73a",
+  "assets": [
+    {
+      "name": "baseline.ply",
+      "id": 586009081,
+      "size": 213222049
+    },
+    {
+      "name": "results.zip",
+      "id": 586009432,
+      "size": 356455280
+    },
+    {
+      "name": "splat.ply",
+      "id": 586009860,
+      "size": 180750809
+    }
+  ],
+  "updated": "2026-09-24T13:23:33Z"
+}

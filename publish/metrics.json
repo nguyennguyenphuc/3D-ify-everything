@@ -1,0 +1,72 @@
+{
+  "name": "courtyard",
+  "config": {
+    "source": "courtyard",
+    "input": null,
+    "name": "courtyard",
+    "stages": "package",
+    "target_frames": 32,
+    "max_frames": 128,
+    "fps": 2.0,
+    "confidence": 0.5,
+    "max_points": 200000,
+    "train_image_max": 1536,
+    "vggt_dtype": "bfloat16",
+    "artifixer_image_max": 960,
+    "reconstruction_steps": 10000,
+    "artifixer3d_steps": 30000,
+    "trajectory_frames": 81,
+    "trajectory_lateral": 0.04,
+    "caption": "A realistic, high-detail indoor space captured by a handheld camera moving slowly through the room, sharp textures, natural lighting, consistent geometry, no motion blur.",
+    "metric_scale": null,
+    "low_memory": false,
+    "fake": false,
+    "force": false
+  },
+  "gpu": {
+    "name": "NVIDIA A100-SXM4-80GB",
+    "memory_mib": 81920,
+    "compute_capability": "8.0",
+    "driver": "580.82.07"
+  },
+  "stages": {},
+  "artifixer3d_ply": {
+    "splats": 1000000,
+    "dropped": 0,
+    "sh_rest": 45
+  },
+  "baseline_ply": {
+    "splats": 1000000,
+    "dropped": 0,
+    "sh_rest": 45
+  },
+  "tidy": {
+    "splat": {
+      "before": 1000000,
+      "after": 765887,
+      "outside_box": 7011,
+      "transparent": 216996,
+      "oversized": 1559,
+      "isolated": 11094
+    },
+    "baseline": {
+      "before": 1000000,
+      "after": 903477,
+      "outside_box": 2632,
+      "transparent": 86680,
+      "oversized": 1631,
+      "isolated": 6718
+    }
+  },
+  "files": [
+    "baseline.ply",
+    "cameras.json",
+    "index.html",
+    "metrics.json",
+    "points.ply",
+    "scene.json",
+    "selection.json",
+    "splat.ply",
+    "trajectory.json"
+  ]
+}
