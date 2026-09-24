@@ -1,0 +1,24 @@
+$ git fetch --quiet origin feature/courtyard-studio
+$ git reset --hard origin/feature/courtyard-studio
+HEAD is now at 22e4161 Stop the Colab agent on a rejected GH_TOKEN instead of retrying forever
+$ python -m colab.pipeline check
+[08:56:02] check: {
+  "gpu": {
+    "name": "NVIDIA A100-SXM4-80GB",
+    "memory_mib": 81920,
+    "compute_capability": "8.0",
+    "driver": "580.82.07"
+  },
+  "python": "3.13.15",
+  "on_colab": true,
+  "cache": "/content/drive/MyDrive/courtyard-cache",
+  "work": "/content/work",
+  "drive_mounted": true,
+  "disk_free_gb": 188.3,
+  "artifixer_cloned": false,
+  "vggt_cloned": false,
+  "setup_marker": null,
+  "torch": "2.11.0+cu128",
+  "cuda": "12.8",
+  "cuda_available": true
+}
