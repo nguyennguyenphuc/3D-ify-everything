@@ -68,7 +68,7 @@ ArtiFixer không tăng độ phân giải ảnh nguồn. Để chi tiết gần 
 
 ### Cách 1 · Chạy tay trong Colab
 
-Mở `colab/courtyard_artifixer.ipynb` ([Open in Colab](https://colab.research.google.com/github/Thanhjash/3D-ify-everything/blob/feature/courtyard-studio/colab/courtyard_artifixer.ipynb)), chọn GPU H100 hoặc A100 + High-RAM rồi chạy lần lượt các ô.
+Mở `colab/courtyard_artifixer.ipynb` ([Open in Colab](https://colab.research.google.com/github/nguyennguyenphuc/3D-ify-everything/blob/feature/courtyard-studio/colab/courtyard_artifixer.ipynb)), chọn GPU H100 hoặc A100 + High-RAM rồi chạy lần lượt các ô.
 
 ### Cách 2 · Điều khiển Colab từ máy khác qua GitHub
 
@@ -87,7 +87,7 @@ python -m colab.remote files <job-id>
 python -m colab.remote fetch <job-id> splat.ply out/splat.ply
 ```
 
-Cơ chế: issue `[colab-agent] control channel` là hộp thư. Issue body chứa heartbeat. Mỗi comment job là một lệnh shell. Agent cập nhật comment trạng thái (log tail) mỗi 20 giây. File nhỏ trong `$COLAB_PUBLISH_DIR` được đẩy lên nhánh `colab-runs/<id>`, file lớn trong `$COLAB_RELEASE_DIR` lên release `colab-run-<id>`. Chỉ comment của owner/member/collaborator hoặc login trong `--allow` mới được chạy. Ai ghi được comment như vậy là chạy được lệnh trên runtime Colab, nên hãy giữ repo private và token chỉ cấp cho repo này. Trước mỗi job, agent `git reset --hard` về nhánh code mới nhất, nên sửa code chỉ cần push.
+Cơ chế: issue `[colab-agent] control channel` là hộp thư. Issue body chứa heartbeat. Mỗi comment job là một lệnh shell. Agent cập nhật comment trạng thái (log tail) mỗi 20 giây. File nhỏ trong `$COLAB_PUBLISH_DIR` được đẩy lên nhánh `colab-runs/<id>`, file lớn trong `$COLAB_RELEASE_DIR` lên release `colab-run-<id>`. Chỉ comment của owner/member/collaborator hoặc login trong `--allow` mới được chạy. Ai ghi được comment như vậy là chạy được lệnh trên runtime Colab, nên chỉ thêm collaborator bạn tin cậy và token chỉ cấp cho repo này. Repo này public: comment của người lạ (không phải owner/collaborator) bị agent bỏ qua, nhưng code và log job ai cũng xem được, nên đừng in secret ra log. Trước mỗi job, agent `git reset --hard` về nhánh code mới nhất, nên sửa code chỉ cần push.
 
 `python -m colab.pipeline selftest` chạy toàn bộ phần không cần model (scene tổng hợp → quỹ đạo → scene ArtiFixer → chuyển PLY → đóng gói) trên CPU. Test: `pytest tests/test_colab_*.py tests/test_vggt_device.py`.
 

@@ -5,7 +5,7 @@ Run inside Colab (see colab/agent_bootstrap.ipynb):
 
 Only comments from the repo owner/members/collaborators (or ``--allow`` logins)
 are executed. Anyone who can write such a comment can run shell commands on
-this Colab runtime, so keep the repository private and the token repo-scoped.
+this Colab runtime, so only add trusted collaborators and keep the token repo-scoped.
 """
 import argparse
 import json
@@ -317,7 +317,7 @@ class Agent:
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--repo', default=os.environ.get('COLAB_REPO', 'Thanhjash/3D-ify-everything'))
+    parser.add_argument('--repo', default=os.environ.get('COLAB_REPO', 'nguyennguyenphuc/3D-ify-everything'))
     parser.add_argument('--workdir', default=os.getcwd())
     parser.add_argument('--root', default='/content/colab_jobs')
     parser.add_argument('--branch', default=os.environ.get('COLAB_CODE_BRANCH', 'feature/courtyard-studio'))

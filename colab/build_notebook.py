@@ -7,7 +7,7 @@ import nbformat
 from nbformat.v4 import new_code_cell, new_markdown_cell, new_notebook
 
 HERE = Path(__file__).resolve().parent
-REPO = 'Thanhjash/3D-ify-everything'
+REPO = 'nguyennguyenphuc/3D-ify-everything'
 BRANCH = 'feature/courtyard-studio'
 
 CLONE = f'''#@title 1 · Clone code + mount Google Drive (cache model ~30 GB, lưu kết quả)

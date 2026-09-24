@@ -32,7 +32,7 @@ def default_repo():
         if match: return match.group(1)
     except OSError:
         pass
-    return 'Thanhjash/3D-ify-everything'
+    return 'nguyennguyenphuc/3D-ify-everything'
 
 
 class Remote:
