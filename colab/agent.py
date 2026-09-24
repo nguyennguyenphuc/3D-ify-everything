@@ -307,6 +307,11 @@ class Agent:
             try:
                 self.step()
             except GitHubError as e:
+                # A rejected token never recovers by retrying; stop with a fix instead of looping.
+                if e.status == 401:
+                    if self.current: self.cancel(self.current)
+                    raise SystemExit('GitHub 401 Bad credentials: GH_TOKEN sai, hết hạn hoặc đã bị xoá. Tạo lại token '
+                                     f'fine-grained cho {self.gh.repo}, dán vào Colab Secrets → GH_TOKEN, chạy lại ô 1 và ô 2.') from None
                 self.log(f'GitHub tạm lỗi: {e}')
             except KeyboardInterrupt:
                 if self.current: self.cancel(self.current)
@@ -325,7 +330,7 @@ def main(argv=None):
     parser.add_argument('--poll', type=float, default=10)
     parser.add_argument('--once', action='store_true', help='exit when no job is running or queued')
     args = parser.parse_args(argv)
-    token = os.environ.get('GH_TOKEN') or os.environ.get('GITHUB_TOKEN')
+    token = (os.environ.get('GH_TOKEN') or os.environ.get('GITHUB_TOKEN') or '').strip()
     if not token: raise SystemExit('Thiếu GH_TOKEN (Colab Secrets)')
     agent = Agent(GitHub(args.repo, token), args.workdir, args.root, args.branch,
                   allow=[x for x in args.allow.split(',') if x], poll=args.poll)

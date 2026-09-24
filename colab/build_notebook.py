@@ -14,9 +14,15 @@ CLONE = f'''#@title 1 · Clone code + mount Google Drive (cache model ~30 GB, l�
 REPO = "{REPO}"  #@param {{type:"string"}}
 BRANCH = "{BRANCH}"  #@param {{type:"string"}}
 MOUNT_DRIVE = True  #@param {{type:"boolean"}}
-import os, subprocess
+import os, subprocess, urllib.error, urllib.request
 from google.colab import userdata
-os.environ["GH_TOKEN"] = userdata.get("GH_TOKEN")  # Colab Secrets → GH_TOKEN, bật "Notebook access"
+os.environ["GH_TOKEN"] = userdata.get("GH_TOKEN").strip()  # Colab Secrets → GH_TOKEN, bật "Notebook access"
+try:  # Fail here, not inside the agent loop, when the token is wrong or lacks access to REPO.
+    urllib.request.urlopen(urllib.request.Request(f"https://api.github.com/repos/{{REPO}}",
+        headers={{"Authorization": f"Bearer {{os.environ['GH_TOKEN']}}"}}), timeout=30)
+except urllib.error.HTTPError as e:
+    raise SystemExit(f"GH_TOKEN không dùng được với {{REPO}} (HTTP {{e.code}}): "
+                     + ("token sai/hết hạn/đã xoá" if e.code == 401 else "token chưa được cấp quyền cho repo này"))
 if MOUNT_DRIVE:
     from google.colab import drive
     drive.mount("/content/drive")
