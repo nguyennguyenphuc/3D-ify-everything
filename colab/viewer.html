@@ -125,7 +125,9 @@ document.querySelectorAll('[data-file]').forEach(b=>{b.disabled=!files.has(b.dat
 $('view').onchange=frame;
 await boundsFromPoints(); frame();
 const first=[...document.querySelectorAll('[data-file]')].find(b=>!b.disabled);
-first?load(first):status('Không có file PLY nào trong thư mục này.');
+// Browsers block fetch() from file:// pages, so a double-clicked index.html can read nothing.
+if(location.protocol==='file:')status('Trình duyệt chặn đọc file khi mở trực tiếp. Trong thư mục này chạy: python -m http.server 8765 rồi mở http://127.0.0.1:8765');
+else first?load(first):status('Không có file PLY nào trong thư mục này.');
 // Same draw path as web/src/Viewer.tsx: SparkRenderer draws the scene once splats exist.
 renderer.setAnimationLoop(()=>{if(document.hidden)return;controls.update();spark?spark.render(scene,camera):renderer.render(scene,camera)});
 </script>
