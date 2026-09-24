@@ -387,7 +387,7 @@ def run_artifixer(cfg, layout, log):
         af([py, str(REPO/'colab'/'artifixer_tools.py'), 'caption', '--out', str(caption), '--text', cfg['caption'],
             '--model_id', MODEL_ID, '--images', str(scene_dir/'images')], log, cache)
     log('ArtiFixer prep: 3DGUT MCMC + render quỹ đạo + MoGe scale', stage='prepare')
-    prep_cmd = [py, '-m', 'data_processing.prepare_colmap_artifixer_inputs', '--colmap_dir', str(scene_dir),
+    prep_cmd = [py, str(REPO/'colab'/'artifixer_tools.py'), 'prep', '--colmap_dir', str(scene_dir),
                 '--output_root', str(prep), '--trajectory_path', str(root/'trajectory.json'),
                 '--reconstruction_steps', str(cfg['reconstruction_steps']), '--text_encoder_model_id', MODEL_ID]
     if cfg.get('metric_scale'): prep_cmd += ['--metric_scale', str(cfg['metric_scale'])]
