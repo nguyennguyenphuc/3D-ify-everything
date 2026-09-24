@@ -1,0 +1,62 @@
+{
+  "images": [
+    {
+      "id": "0000",
+      "name": "00_DSC_0313.JPG",
+      "file": "originals/0000.jpg",
+      "thumbnail": "thumbnails/0000.jpg",
+      "sha256": "0f14c27ef8b79939d19b40a28a0a0beee6fe0a7d0300fe7cf0d86ce4b90464a4"
+    },
+    {
+      "id": "0001",
+      "name": "01_DSC_0312.JPG",
+      "file": "originals/0001.jpg",
+      "thumbnail": "thumbnails/0001.jpg",
+      "sha256": "6ea452300bf67145c56d277c803d42aa134e36a476fc7d353bedf158e001e02e"
+    },
+    {
+      "id": "0002",
+      "name": "02_DSC_0317.JPG",
+      "file": "originals/0002.jpg",
+      "thumbnail": "thumbnails/0002.jpg",
+      "sha256": "b77d5da14fbc812721c122e11c83f4094ae92b1f51d1fa945304b7ec36accc88"
+    },
+    {
+      "id": "0003",
+      "name": "03_DSC_0323.JPG",
+      "file": "originals/0003.jpg",
+      "thumbnail": "thumbnails/0003.jpg",
+      "sha256": "2c81ba423cc705a3e16fcd1ed452cd92415abd1f00b635dc7acb6016bab195cb"
+    },
+    {
+      "id": "0004",
+      "name": "04_DSC_0318.JPG",
+      "file": "originals/0004.jpg",
+      "thumbnail": "thumbnails/0004.jpg",
+      "sha256": "234d2c5fa16a7b9316505cc7867470712750f58f31912baaf43ef41de9db6a6a"
+    },
+    {
+      "id": "0005",
+      "name": "05_DSC_0311.JPG",
+      "file": "originals/0005.jpg",
+      "thumbnail": "thumbnails/0005.jpg",
+      "sha256": "112c1e981145042a528b926473dfd9013db7c6f403bb00ba7aad9cfcfd22f8bb"
+    },
+    {
+      "id": "0006",
+      "name": "06_DSC_0310.JPG",
+      "file": "originals/0006.jpg",
+      "thumbnail": "thumbnails/0006.jpg",
+      "sha256": "b207988862e4e67a719c3a2ffd172514f2e78339e0429c51d72152456d8bc84a"
+    },
+    {
+      "id": "0007",
+      "name": "07_DSC_0315.JPG",
+      "file": "originals/0007.jpg",
+      "thumbnail": "thumbnails/0007.jpg",
+      "sha256": "cff88f395b25887547e7359b1b540af797d66aa0a8da755d7c231f4f7e488142"
+    }
+  ],
+  "connected": true,
+  "method": "all images"
+}

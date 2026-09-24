@@ -1,0 +1,11 @@
+$ git fetch --quiet origin feature/courtyard-studio
+$ git reset --hard origin/feature/courtyard-studio
+HEAD is now at baa89a1 Turn the result viewer into a Matterport-style tour
+$ python -m colab.pipeline run --source courtyard --name courtyard --stages package
+[13:45:45] package: Bắt đầu
+[13:47:19] tidy: splat.ply: 1,000,000 → 765,887 Gaussian
+[13:48:46] tidy: baseline.ply: 1,000,000 → 903,477 Gaussian
+[13:49:03] package: Đã chuẩn bị file cho GitHub release
+[13:49:05] package: Đã lưu /content/drive/MyDrive/courtyard-results/courtyard-20260924-134903.zip
+[13:49:05] package: Kết quả: /content/work/courtyard/enhance · /content/work/courtyard/results.zip (339.9 MiB)
+[13:49:05] package: Xong sau 200 giây
