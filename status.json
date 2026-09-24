@@ -1,0 +1,24 @@
+{
+  "id": "20260924-090422-courtyard-4ba1",
+  "state": "failed",
+  "cmd": "python -m colab.pipeline run --source courtyard --name courtyard",
+  "commit": "22e4161bad18147ee0fdfbc6bdff9f76202bf83f",
+  "started": "2026-09-24T09:04:30Z",
+  "finished": "2026-09-24T09:07:31Z",
+  "elapsed_seconds": 181,
+  "exit_code": 1,
+  "error": null,
+  "gpu": {
+    "name": "NVIDIA A100-SXM4-80GB",
+    "memory_total_mib": 81920,
+    "memory_used_mib": 0,
+    "utilization": 0
+  },
+  "log_total_lines": 207,
+  "tail_start": 127,
+  "branch": "colab-runs/20260924-090422-courtyard-4ba1",
+  "published_commit": "f2e57672a421e6fb61e91e0309c2ea333a87a7f1",
+  "release": null,
+  "assets": [],
+  "updated": "2026-09-24T09:07:31Z"
+}
