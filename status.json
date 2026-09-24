@@ -1,0 +1,40 @@
+{
+  "id": "20260924-090936-courtyard-a8c9",
+  "state": "succeeded",
+  "cmd": "python -m colab.pipeline run --source courtyard --name courtyard",
+  "commit": "0a2421e247aceef24bd0015601ef7af8c47b0f89",
+  "started": "2026-09-24T09:09:45Z",
+  "finished": "2026-09-24T11:42:58Z",
+  "elapsed_seconds": 9244,
+  "exit_code": 0,
+  "error": null,
+  "gpu": {
+    "name": "NVIDIA A100-SXM4-80GB",
+    "memory_total_mib": 81920,
+    "memory_used_mib": 0,
+    "utilization": 0
+  },
+  "log_total_lines": 945,
+  "tail_start": 865,
+  "branch": "colab-runs/20260924-090936-courtyard-a8c9",
+  "published_commit": "dc41d134c9963991a781c2f22f9773016bfe9019",
+  "release": "colab-run-20260924-090936-courtyard-a8c9",
+  "assets": [
+    {
+      "name": "baseline.ply",
+      "id": 585839985,
+      "size": 236001478
+    },
+    {
+      "name": "results.zip",
+      "id": 585840277,
+      "size": 589150331
+    },
+    {
+      "name": "splat.ply",
+      "id": 585841168,
+      "size": 236001478
+    }
+  ],
+  "updated": "2026-09-24T11:43:48Z"
+}
