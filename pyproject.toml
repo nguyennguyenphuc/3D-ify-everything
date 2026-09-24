@@ -6,6 +6,7 @@ dependencies = ["torch", "torchvision", "numpy", "pillow", "huggingface-hub", "e
 
 [dependency-groups]
 dev = ["pytest", "httpx", "cmake", "ninja"]
+colab = ["nbformat"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

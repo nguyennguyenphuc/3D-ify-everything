@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Courtyard Splat Viewer</title>
+<style>
+:root{--bg:#f4f4f1;--panel:#ffffff;--ink:#1c1f1e;--muted:#5d6461;--line:#d9dcd8;--accent:#2f6f5e;--canvas:#e9ebe7}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1211;--panel:#171b1a;--ink:#e8ebe9;--muted:#9aa39f;--line:#2a302e;--accent:#6cc3a8;--canvas:#101312}}
+:root[data-theme="dark"]{--bg:#0f1211;--panel:#171b1a;--ink:#e8ebe9;--muted:#9aa39f;--line:#2a302e;--accent:#6cc3a8;--canvas:#101312}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}
+header{padding:14px 16px;border-bottom:1px solid var(--line);display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center}
+h1{font-size:17px;margin:0 12px 0 0}
+.tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+button,select{font:inherit;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:5px 10px;cursor:pointer}
+button[aria-pressed="true"]{border-color:var(--accent);color:var(--accent);font-weight:600}
+button:disabled{opacity:.45;cursor:default}
+main{padding:12px 16px;display:grid;gap:14px}
+#stage{position:relative;height:min(72vh,760px);background:var(--canvas);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+#stage canvas{display:block;width:100%;height:100%}
+#status{margin:0;color:var(--muted);font-size:13px}
+.compare{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px}
+.compare h2{font-size:15px;margin:0 0 8px}
+.wipe{position:relative;max-width:100%;overflow:hidden;border-radius:6px;background:var(--canvas)}
+.wipe img{display:block;width:100%;height:auto}
+.wipe .top{position:absolute;inset:0;clip-path:inset(0 50% 0 0)}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:8px;color:var(--muted);font-size:13px}
+input[type=range]{flex:1;min-width:140px}
+dl{display:grid;grid-template-columns:max-content 1fr;gap:2px 12px;margin:0;font-size:13px;color:var(--muted)}
+dd{margin:0;color:var(--ink);overflow-wrap:anywhere}
+</style>
+<script type="importmap">
+{"imports":{
+  "three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
+  "three/addons/":"https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/",
+  "fflate":"https://cdn.jsdelivr.net/npm/fflate@0.8.2/esm/browser.js",
+  "@sparkjsdev/spark":"https://cdn.jsdelivr.net/npm/@sparkjsdev/spark@2.2.0/dist/spark.module.js"
+}}
+</script>
+</head>
+<body>
+<header>
+  <h1>Courtyard · kết quả Colab</h1>
+  <div class="tools" role="group" aria-label="Chế độ xem">
+    <button id="m-splat" data-file="splat.ply" data-kind="splat">Splat (ArtiFixer3D)</button>
+    <button id="m-baseline" data-file="baseline.ply" data-kind="splat">Splat gốc (3DGUT)</button>
+    <button id="m-points" data-file="points.ply" data-kind="points">Point cloud VGGT</button>
+    <select id="view" aria-label="Góc nhìn"><option value="all">Toàn cảnh</option></select>
+  </div>
+</header>
+<main>
+  <div id="stage"></div>
+  <p id="status" role="status">Đang tải…</p>
+  <section class="compare" id="compare" hidden>
+    <h2>So sánh khung hình quỹ đạo mới</h2>
+    <div class="wipe" id="wipe"><img id="img-a" alt="Render 3DGUT"><img id="img-b" class="top" alt="ArtiFixer đã sửa"></div>
+    <div class="row">
+      <label for="frame">Khung</label><input id="frame" type="range" min="0" max="0" value="0">
+      <label for="split">Trái: ArtiFixer · Phải: render gốc</label><input id="split" type="range" min="0" max="100" value="50">
+    </div>
+  </section>
+  <section class="compare"><h2>Thông số</h2><dl id="facts"></dl></section>
+</main>
+<script type="module">
+import * as THREE from 'three';
+import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+import {PLYLoader} from 'three/addons/loaders/PLYLoader.js';
+const $=id=>document.getElementById(id), status=t=>$('status').textContent=t;
+const exists=async f=>{try{const r=await fetch(f,{method:'HEAD'});return r.ok}catch{return false}};
+const json=async f=>{try{const r=await fetch(f);return r.ok?await r.json():null}catch{return null}};
+const metrics=await json('metrics.json')||{}, cams=((await json('cameras.json'))||{}).cameras||[];
+const files=new Set(metrics.files||[]);
+for(const f of ['splat.ply','baseline.ply','points.ply']) if(!files.size&&await exists(f)) files.add(f);
+cams.forEach((c,i)=>$('view').add(new Option(`Camera ${i+1}${c.timestamp_seconds!=null?` · ${c.timestamp_seconds.toFixed(1)}s`:''}`,String(i))));
+const facts={Scene:metrics.name,GPU:metrics.gpu&&metrics.gpu.name,'Splat ArtiFixer3D':metrics.artifixer3d_ply&&`${metrics.artifixer3d_ply.splats.toLocaleString()} Gaussian`,
+  'Splat gốc':metrics.baseline_ply&&`${metrics.baseline_ply.splats.toLocaleString()} Gaussian`,'Metric scale':metrics.metric_scale,'Ghi chú':metrics.note,
+  'Thời gian (giây)':metrics.stages&&Object.entries(metrics.stages).map(([k,v])=>`${k} ${v}`).join(' · ')};
+for(const [k,v] of Object.entries(facts)) if(v){$('facts').append(Object.assign(document.createElement('dt'),{textContent:k}),Object.assign(document.createElement('dd'),{textContent:v}))}
+
+const frames=[...files].filter(f=>f.startsWith('fixed_frames/')).sort();
+if(frames.length){
+  $('compare').hidden=false; $('frame').max=frames.length-1;
+  const show=()=>{const f=frames[+$('frame').value];$('img-b').src=f;$('img-a').src=f.replace('fixed_frames/','rendered_frames/')};
+  $('frame').oninput=show; $('split').oninput=()=>$('img-b').style.clipPath=`inset(0 ${100-$('split').value}% 0 0)`; show();
+}
+
+const stage=$('stage'), renderer=new THREE.WebGLRenderer({antialias:false});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2)); stage.append(renderer.domElement);
+const scene=new THREE.Scene(), camera=new THREE.PerspectiveCamera(60,1,.001,10000), controls=new OrbitControls(camera,renderer.domElement);
+controls.enableDamping=true;
+let current=null, bounds=new THREE.Sphere(new THREE.Vector3(),2), spark=null;
+const resize=()=>{const w=stage.clientWidth,h=stage.clientHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix()};
+new ResizeObserver(resize).observe(stage); resize();
+async function boundsFromPoints(){
+  if(!files.has('points.ply'))return;
+  const g=new PLYLoader().parse(await (await fetch('points.ply')).arrayBuffer()); g.computeBoundingSphere(); bounds=g.boundingSphere.clone(); g.dispose();
+}
+function frame(){
+  const r=Math.max(bounds.radius,.01); camera.near=r/1000; camera.far=r*100+100;
+  const c=cams[+$('view').value];
+  if(c){const m=new THREE.Matrix4().fromArray(c.viewer_c2w.flat()).transpose(); m.decompose(camera.position,camera.quaternion,camera.scale);
+    const fwd=new THREE.Vector3(0,0,-1).applyQuaternion(camera.quaternion);
+    controls.target.copy(camera.position).addScaledVector(fwd,Math.max(bounds.center.clone().sub(camera.position).dot(fwd),r*.2));
+    camera.fov=2*Math.atan(c.wh[1]/(2*c.K[1][1]))*180/Math.PI;}
+  else{controls.target.copy(bounds.center);camera.position.copy(bounds.center).add(new THREE.Vector3(1,.6,1).multiplyScalar(r*1.6));camera.fov=60}
+  camera.updateProjectionMatrix();
+}
+async function load(button){
+  document.querySelectorAll('[data-file]').forEach(b=>b.setAttribute('aria-pressed',b===button));
+  if(current){scene.remove(current);current.dispose?.();current.geometry?.dispose();current=null}
+  status(`Đang tải ${button.dataset.file}…`);
+  try{
+    if(button.dataset.kind==='splat'){
+      const {SplatMesh,SparkRenderer}=await import('@sparkjsdev/spark');
+      if(!spark){spark=new SparkRenderer({renderer});scene.add(spark)}
+      current=new SplatMesh({url:button.dataset.file}); await current.initialized;
+    }else{
+      const g=new PLYLoader().parse(await (await fetch(button.dataset.file)).arrayBuffer());
+      current=new THREE.Points(g,new THREE.PointsMaterial({size:2,vertexColors:true,sizeAttenuation:false}));
+    }
+    scene.add(current); status(`${button.textContent} · kéo để xoay, cuộn để phóng to`);
+  }catch(e){status(`Lỗi tải ${button.dataset.file}: ${e.message||e}`)}
+}
+document.querySelectorAll('[data-file]').forEach(b=>{b.disabled=!files.has(b.dataset.file);b.onclick=()=>load(b)});
+$('view').onchange=frame;
+await boundsFromPoints(); frame();
+const first=[...document.querySelectorAll('[data-file]')].find(b=>!b.disabled);
+first?load(first):status('Không có file PLY nào trong thư mục này.');
+// Same draw path as web/src/Viewer.tsx: SparkRenderer draws the scene once splats exist.
+renderer.setAnimationLoop(()=>{if(document.hidden)return;controls.update();spark?spark.render(scene,camera):renderer.render(scene,camera)});
+</script>
+</body>
+</html>

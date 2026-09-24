@@ -55,6 +55,42 @@ Chọn **Upload và dựng phòng 3D** (mặc định bật) rồi gửi video �
 
 Người dùng có thể chuyển sang chọn thủ công để thêm/bỏ ảnh trên timeline trước khi chạy lại. Viewer mở Splat khi có kết quả; chọn camera theo timestamp, hoặc Point cloud/Depth để đối chiếu. Chỉ các bề mặt đã quay đủ góc mới có thể tái dựng; vùng bị che và mặt sau đồ vật không được suy diễn.
 
+## Chạy toàn bộ trên Google Colab (không cần Mac)
+
+Thư mục `colab/` chạy cùng pipeline trên GPU NVIDIA của Colab và thêm **ArtiFixer** (NVIDIA, SIGGRAPH 2026) để sửa floater/lỗ và điền vùng thiếu:
+
+1. **VGGT-1B CUDA bf16** (`studio/vggt.py`, dùng chung `studio/geometry.py`) → COLMAP `run/sparse/0`, ảnh train 1536 px, tới 128 frame.
+2. **3DGUT MCMC** (3DGRUT) dựng splat gốc, render một quỹ đạo camera mới đi qua các góc đã quay.
+3. **ArtiFixer 1.3B** sửa các khung hình của quỹ đạo đó; **ArtiFixer3D** distill ảnh thật + ảnh đã sửa thành `splat.ply`.
+4. Đóng gói `enhance/` gồm `splat.ply`, `baseline.ply`, `points.ply`, `compare.jpg`, `preview.mp4`, `metrics.json` và `index.html` (viewer Spark). Có thêm `results.zip`, bản sao lưu trên Drive nếu đã mount.
+
+ArtiFixer không tăng độ phân giải ảnh nguồn. Để chi tiết gần kiểu Matterport, hãy quay chậm, chồng lấn ≥60% và đi 2 vòng ở 2 độ cao.
+
+### Cách 1 · Chạy tay trong Colab
+
+Mở `colab/courtyard_artifixer.ipynb` ([Open in Colab](https://colab.research.google.com/github/Thanhjash/3D-ify-everything/blob/feature/courtyard-studio/colab/courtyard_artifixer.ipynb)), chọn GPU H100 hoặc A100 + High-RAM rồi chạy lần lượt các ô.
+
+### Cách 2 · Điều khiển Colab từ máy khác qua GitHub
+
+Máy điều khiển (kể cả Claude Code trên cloud) chỉ cần truy cập `api.github.com`; không cần tunnel và không tải gì về máy cá nhân.
+
+1. Tạo GitHub token *fine-grained* chỉ cho repo này với quyền Contents RW, Issues RW, Metadata R. Lưu token vào Colab Secrets dưới tên `GH_TOKEN`.
+2. Mở `colab/agent_bootstrap.ipynb` trên Colab (GPU H100/A100), chạy ô 1 rồi ô 2. Để ô 2 chạy liên tục.
+3. Từ máy điều khiển:
+
+```bash
+python -m colab.remote status                                   # heartbeat + GPU
+python -m colab.remote run "python -m colab.pipeline check"
+python -m colab.remote run "python -m colab.pipeline setup" --timeout 90
+python -m colab.remote run "python -m colab.pipeline run --source courtyard" --timeout 240 --name courtyard
+python -m colab.remote files <job-id>
+python -m colab.remote fetch <job-id> splat.ply out/splat.ply
+```
+
+Cơ chế: issue `[colab-agent] control channel` là hộp thư. Issue body chứa heartbeat. Mỗi comment job là một lệnh shell. Agent cập nhật comment trạng thái (log tail) mỗi 20 giây. File nhỏ trong `$COLAB_PUBLISH_DIR` được đẩy lên nhánh `colab-runs/<id>`, file lớn trong `$COLAB_RELEASE_DIR` lên release `colab-run-<id>`. Chỉ comment của owner/member/collaborator hoặc login trong `--allow` mới được chạy. Ai ghi được comment như vậy là chạy được lệnh trên runtime Colab, nên hãy giữ repo private và token chỉ cấp cho repo này. Trước mỗi job, agent `git reset --hard` về nhánh code mới nhất, nên sửa code chỉ cần push.
+
+`python -m colab.pipeline selftest` chạy toàn bộ phần không cần model (scene tổng hợp → quỹ đạo → scene ArtiFixer → chuyển PLY → đóng gói) trên CPU. Test: `pytest tests/test_colab_*.py tests/test_vggt_device.py`.
+
 ## Nhập dữ liệu
 
 - **Thư mục ảnh:** phải nằm dưới `STUDIO_IMPORT_ROOTS` (mặc định là workspace). Đặt ví dụ: `export STUDIO_IMPORT_ROOTS=/Users/nguyennp/Pictures:/Users/nguyennp/AI/3D` trước khi khởi động.
