@@ -5,6 +5,7 @@
     python -m colab.pipeline run --source courtyard     # ETH3D 8-image smoke scene
     python -m colab.pipeline run --source video --input /content/drive/MyDrive/room.mp4 --name room
     python -m colab.pipeline selftest                   # CPU-only synthetic run of every non-model step
+    python -m colab.pipeline tidy --dir out/courtyard/enhance   # crop a downloaded result (keeps *.full.ply)
 
 Heavy imports stay inside functions so this module imports without torch/GPU.
 When launched by colab.agent, small outputs go to $COLAB_PUBLISH_DIR (GitHub branch)
@@ -455,6 +456,79 @@ def convert_3dgrut_ply(src, dst, min_opacity_logit=-8.0):
     return {'splats': validate_splat(dst), 'dropped': int((~ok).sum()), 'sh_rest': len(rest)}
 
 
+# Tidy: crop to the captured region --------------------------------------------
+def scene_frame(cameras, points):
+    """Up axis from the cameras (OpenCV y points down), horizontal axes from the VGGT points."""
+    down = np.mean([np.asarray(c['w2c'])[1, :3] for c in cameras], 0)
+    up = -down / np.linalg.norm(down)
+    flat = points - np.outer(points @ up, up)
+    flat = flat - flat.mean(0)
+    a1 = np.linalg.svd(flat[:: max(1, len(flat) // 20000)], full_matrices=False)[2][0]
+    a1 = a1 - (a1 @ up) * up; a1 /= np.linalg.norm(a1)
+    return np.stack([a1, np.cross(up, a1), up])
+
+
+def scene_box(cameras, points, margin=.1):
+    axes = scene_frame(cameras, points)
+    centers = np.array([-np.asarray(c['w2c'])[:3, :3].T @ np.asarray(c['w2c'])[:3, 3] for c in cameras])
+    p, c = points @ axes.T, centers @ axes.T
+    low = np.minimum(np.quantile(p, .01, 0), c.min(0)); high = np.maximum(np.quantile(p, .99, 0), c.max(0))
+    pad = (high - low) * margin + 1e-6
+    low, high = low - pad, high + pad
+    return {'axes': axes.tolist(), 'up': axes[2].tolist(), 'center': (axes.T @ ((low + high) / 2)).tolist(),
+            'half_size': ((high - low) / 2).tolist(), 'floor': float(np.quantile(p[:, 2], .02)),
+            'sweeps': centers.tolist()}
+
+
+def tidy_splat(src, dst, box, min_opacity=.05, max_scale=.05, neighbors=8, isolation=5.0):
+    """Drop Gaussians outside ``box``, nearly transparent ones, oversized blobs and isolated floaters."""
+    from plyfile import PlyData, PlyElement
+    from scipy.spatial import cKDTree
+    from studio.training import validate_splat
+    v = PlyData.read(str(src), mmap=False)['vertex'].data
+    xyz = np.stack([v['x'], v['y'], v['z']], 1).astype(np.float64)
+    local = (xyz - np.asarray(box['center'])) @ np.asarray(box['axes']).T
+    half = np.asarray(box['half_size'])
+    inside = (np.abs(local) <= half).all(1)
+    opaque = 1 / (1 + np.exp(-np.asarray(v['opacity'], np.float64))) >= min_opacity
+    size = np.exp(np.stack([v[f'scale_{i}'] for i in range(3)], 1).max(1))
+    small = size <= max_scale * 2 * np.linalg.norm(half)
+    keep = inside & opaque & small
+    isolated = 0
+    if keep.sum() > neighbors * 4:
+        pts = xyz[keep]
+        dist = cKDTree(pts).query(pts, k=neighbors + 1, workers=-1)[0][:, -1]
+        alone = dist > isolation * np.median(dist)
+        isolated = int(alone.sum())
+        keep[np.flatnonzero(keep)[alone]] = False
+    if not keep.any(): raise ValueError(f'Cắt gọn bỏ hết Gaussian trong {src}; kiểm tra cameras.json/points.ply')
+    kept, total = v[keep].copy(), len(v)
+    del v
+    # src may equal dst: write beside it, then swap.
+    tmp = Path(dst).with_suffix('.tidy.tmp')
+    PlyData([PlyElement.describe(kept, 'vertex')], text=False).write(str(tmp))
+    tmp.replace(dst)
+    return {'before': total, 'after': validate_splat(dst), 'outside_box': int((~inside).sum()),
+            'transparent': int((~opaque).sum()), 'oversized': int((~small).sum()), 'isolated': isolated}
+
+
+def tidy_dir(folder, keep_full=False, log=None):
+    """Crop splat.ply/baseline.ply in an enhance folder in place and write scene.json for the viewer."""
+    folder = Path(folder)
+    cameras = json.loads((folder/'cameras.json').read_text())['cameras']
+    points, _ = read_ply_xyzrgb(folder/'points.ply')
+    box = scene_box(cameras, points)
+    stats = {}
+    for name in ('splat', 'baseline'):
+        target, full = folder/f'{name}.ply', folder/f'{name}.full.ply'
+        if not target.exists() and not full.exists(): continue
+        if keep_full and not full.exists(): target.replace(full)
+        stats[name] = tidy_splat(full if full.exists() else target, target, box)
+        if log: log(f'{name}.ply: {stats[name]["before"]:,} → {stats[name]["after"]:,} Gaussian', stage='tidy')
+    (folder/'scene.json').write_text(json.dumps(dict(box, tidy=stats), indent=2))
+    return stats
+
+
 # Packaging ------------------------------------------------------------------
 def contact_sheet(pairs, dest, width=1600):
     from PIL import Image, ImageDraw
@@ -492,6 +566,8 @@ def package(cfg, layout, result, log):
     if not (enhance/'splat.ply').exists() and (enhance/'baseline.ply').exists():
         shutil.copy2(enhance/'baseline.ply', enhance/'splat.ply')
         metrics['note'] = 'Chưa có ArtiFixer3D; splat.ply là reconstruction 3DGUT gốc'
+    if (enhance/'cameras.json').exists() and (enhance/'points.ply').exists():
+        metrics['tidy'] = tidy_dir(enhance, log=log)
     pred = Path(result['pred']) if result.get('pred') else None
     pairs = []
     if pred and pred.exists():
@@ -523,7 +599,7 @@ def publish(enhance, archive, log):
     pub, rel = os.environ.get('COLAB_PUBLISH_DIR'), os.environ.get('COLAB_RELEASE_DIR')
     if pub:
         pub = Path(pub); pub.mkdir(parents=True, exist_ok=True)
-        for name in ('metrics.json', 'cameras.json', 'selection.json', 'trajectory.json', 'compare.jpg'):
+        for name in ('metrics.json', 'cameras.json', 'scene.json', 'selection.json', 'trajectory.json', 'compare.jpg'):
             if (enhance/name).exists(): shutil.copy2(enhance/name, pub/name)
         frames = sorted((enhance/'fixed_frames').glob('*.png'))
         for p in frames[::max(1, len(frames) // 4)][:4]:
@@ -637,6 +713,9 @@ def synthetic_3dgrut_ply(path, n=500, sh_rest=45, seed=0):
     arr = np.empty(n, dtype=[(k, 'f4') for k in names])
     for k in names: arr[k] = rng.normal(0, 1, n)
     arr['opacity'] = rng.uniform(-3, 3, n); arr['nx'] = arr['ny'] = 0; arr['nz'] = 1
+    # Small Gaussians on the synthetic_scene plane, like a trained splat, so tidy keeps them.
+    arr['x'], arr['y'], arr['z'] = rng.uniform(-2, 2, n), rng.uniform(-1.5, 1.5, n), rng.uniform(3.5, 4.5, n)
+    for i in range(3): arr[f'scale_{i}'] = rng.normal(-4, .3, n)
     arr['x'][0] = np.nan
     PlyData([PlyElement.describe(arr, 'vertex')], text=False).write(str(path))
 
@@ -664,7 +743,8 @@ def selftest(args):
     args.force = True
     state = run(args)
     enhance = layout_for(re.sub(r'[^A-Za-z0-9_-]+', '-', args.name))['enhance']
-    need = ['splat.ply', 'baseline.ply', 'compare.jpg', 'metrics.json', 'trajectory.json', 'index.html', 'points.ply', 'cameras.json']
+    need = ['splat.ply', 'baseline.ply', 'compare.jpg', 'metrics.json', 'trajectory.json', 'index.html', 'points.ply', 'cameras.json',
+            'scene.json']
     missing = [n for n in need if not (enhance/n).exists()]
     if missing: raise SystemExit(f'selftest thiếu {missing}')
     print(f'SELFTEST OK · {state["package"]["artifixer3d_ply"]}', flush=True)
@@ -674,6 +754,9 @@ def build_parser():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = parser.add_subparsers(dest='command', required=True)
     sub.add_parser('check').set_defaults(func=check)
+    p = sub.add_parser('tidy', help='cắt gọn splat.ply/baseline.ply trong thư mục enhance đã tải về')
+    p.set_defaults(func=lambda a: tidy_dir(a.dir, keep_full=True, log=Log()))
+    p.add_argument('--dir', required=True, type=Path)
     p = sub.add_parser('setup'); p.set_defaults(func=setup)
     p.add_argument('--skip-artifixer', action='store_true')
     p.add_argument('--torch-version', default='2.11.0')

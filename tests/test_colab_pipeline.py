@@ -83,3 +83,32 @@ def test_convert_truncates_sh_and_drops_bad_rows(work):
     names = PlyData.read(str(dst))['vertex'].data.dtype.names
     assert info['sh_rest'] == 9 and 'nx' not in names and info['splats'] + info['dropped'] == 50
     assert {'f_rest_0', 'f_rest_8'} <= set(names) and 'f_rest_9' not in names
+
+
+def compact_ply(path, xyz, opacity, log_scale):
+    from plyfile import PlyData, PlyElement
+    names = ['x', 'y', 'z', 'f_dc_0', 'f_dc_1', 'f_dc_2', 'opacity', 'scale_0', 'scale_1', 'scale_2', 'rot_0', 'rot_1', 'rot_2', 'rot_3']
+    arr = np.zeros(len(xyz), dtype=[(n, 'f4') for n in names])
+    arr['x'], arr['y'], arr['z'] = xyz.T
+    arr['opacity'], arr['rot_0'] = opacity, 1
+    for i in range(3): arr[f'scale_{i}'] = log_scale
+    PlyData([PlyElement.describe(arr, 'vertex')], text=False).write(str(path))
+
+
+def test_tidy_crops_to_captured_region(work):
+    layout, cameras = synthetic_cameras(work)
+    points, _ = pipeline.read_ply_xyzrgb(layout['run']/'geometry'/'points.ply')
+    box = pipeline.scene_box(cameras, points)
+    assert np.allclose(box['up'], [0, -1, 0], atol=1e-6)
+    rng = np.random.default_rng(1)
+    inside = points[rng.choice(len(points), 2000, replace=False)]
+    xyz = np.vstack([inside, [[40, 0, 4]], [[0, 0, 4]], [[1, 0, 4]], [[-1, 0, 4]]])
+    opacity = np.r_[np.full(2000, 2.0), 2.0, 2.0, -6.0, 2.0]
+    log_scale = np.r_[np.full(2000, -5.0), -5.0, -5.0, -5.0, np.log(10.0)]
+    src, dst = work/'full.ply', work/'tidy.ply'
+    compact_ply(src, xyz, opacity, log_scale)
+    info = pipeline.tidy_splat(src, dst, box)
+    assert (info['outside_box'], info['transparent'], info['oversized']) == (1, 1, 1)
+    assert info['after'] >= 1990 and info['after'] == info['before'] - 3 - info['isolated']
+    info = pipeline.tidy_splat(dst, dst, box)  # in place is safe
+    assert info['before'] == info['after'] + info['isolated']
