@@ -1,0 +1,56 @@
+$ cat > /tmp/probe.py <<'PY'
+"""Probe: does VGGT's np_to_pycolmap + pycolmap BA work with the installed pycolmap?"""
+import sys
+import numpy as np
+sys.path.insert(0, '/content/3D-ify-everything/vendor/vggt')
+import pycolmap
+from vggt.dependency.np_to_pycolmap import batch_np_matrix_to_pycolmap
+print('pycolmap', pycolmap.__version__)
+rng = np.random.default_rng(0)
+N, P, W = 4, 300, 512
+pts = np.column_stack([rng.uniform(-1, 1, P), rng.uniform(-1, 1, P), rng.uniform(4, 6, P)])
+K = np.array([[400., 0, W / 2], [0, 400., W / 2], [0, 0, 1]])
+ext = np.stack([np.hstack([np.eye(3), [[-.3 * i], [0], [0]]]) for i in range(N)])
+tracks = np.zeros((N, P, 2))
+for i in range(N):
+    cam = pts @ ext[i][:, :3].T + ext[i][:, 3]
+    uv = cam @ K.T
+    tracks[i] = uv[:, :2] / uv[:, 2:] + rng.normal(0, .3, (P, 2))
+noisy = ext.copy(); noisy[1:, :, 3] += rng.normal(0, .01, (N - 1, 3))
+rec, valid = batch_np_matrix_to_pycolmap(pts + rng.normal(0, .01, pts.shape), noisy, np.repeat(K[None], N, 0), tracks,
+                                         np.array([W, W]), masks=np.ones((N, P), bool), max_reproj_error=8,
+                                         shared_camera=True, camera_type='PINHOLE', points_rgb=np.full((P, 3), 128, np.uint8))
+print('built', rec is not None, rec.num_points3D() if rec else None)
+before = rec.compute_mean_reprojection_error()
+pycolmap.bundle_adjustment(rec, pycolmap.BundleAdjustmentOptions())
+print('reproj before/after', round(before, 3), round(rec.compute_mean_reprojection_error(), 3))
+img = rec.images[1]
+pose = img.cam_from_world() if callable(img.cam_from_world) else img.cam_from_world
+print('pose api ok', pose.matrix().shape, rec.cameras[img.camera_id].calibration_matrix().shape)
+print('PROBE OK')
+PY
+for v in 3.12.6 3.13.0 4.1.1; do echo "== pycolmap $v"; pip install -q pycolmap==$v 2>&1 | tail -1; python /tmp/probe.py 2>&1 | tail -6; done
+== pycolmap 3.12.6
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 20.2/20.2 MB 103.1 MB/s eta 0:00:00
+                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/content/3D-ify-everything/vendor/vggt/vggt/dependency/np_to_pycolmap.py", line 108, in batch_np_matrix_to_pycolmap
+    image = pycolmap.Image(
+        id=fidx + 1, name=f"image_{fidx + 1}", camera_id=camera.camera_id, cam_from_world=cam_from_world
+    )
+AttributeError: 'pycolmap._core.Image' object has no attribute 'id'
+== pycolmap 3.13.0
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 20.3/20.3 MB 5.7 MB/s eta 0:00:00
+                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/content/3D-ify-everything/vendor/vggt/vggt/dependency/np_to_pycolmap.py", line 108, in batch_np_matrix_to_pycolmap
+    image = pycolmap.Image(
+        id=fidx + 1, name=f"image_{fidx + 1}", camera_id=camera.camera_id, cam_from_world=cam_from_world
+    )
+AttributeError: 'pycolmap._core.Image' object has no attribute 'id'
+== pycolmap 4.1.1
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 27.8/27.8 MB 2.0 MB/s eta 0:00:00
+                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/content/3D-ify-everything/vendor/vggt/vggt/dependency/np_to_pycolmap.py", line 108, in batch_np_matrix_to_pycolmap
+    image = pycolmap.Image(
+        id=fidx + 1, name=f"image_{fidx + 1}", camera_id=camera.camera_id, cam_from_world=cam_from_world
+    )
+AttributeError: 'pycolmap._core.Image' object has no attribute 'id'

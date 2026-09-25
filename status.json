@@ -1,0 +1,24 @@
+{
+  "id": "20260925-073554-probe-ba-0ec1",
+  "state": "succeeded",
+  "cmd": "cat > /tmp/probe.py <<'PY'\n\"\"\"Probe: does VGGT's np_to_pycolmap + pycolmap BA work with the installed pycolmap?\"\"\"\nimport sys\nimport numpy as np\nsys.path.insert(0, '/content/3D-ify-everything/vendor/vggt')\nimport pycolmap\nfrom vggt.dependency.np_to_pycolmap import batch_np_matrix_to_pycolmap\nprint('pycolmap', pycolmap.__version__)\nrng = np.random.default_rng(0)\nN, P, W = 4, 300, 512\npts = np.column_stack([rng.uniform(-1, 1, P), rng.uniform(-1, 1, P), rng.uniform(4, 6, P)])\nK = np.array([[400., 0, W / 2], [0, 400., W / 2], [0, 0, 1]])\next = np.stack([np.hstack([np.eye(3), [[-.3 * i], [0], [0]]]) for i in range(N)])\ntracks = np.zeros((N, P, 2))\nfor i in range(N):\n    cam = pts @ ext[i][:, :3].T + ext[i][:, 3]\n    uv = cam @ K.T\n    tracks[i] = uv[:, :2] / uv[:, 2:] + rng.normal(0, .3, (P, 2))\nnoisy = ext.copy(); noisy[1:, :, 3] += rng.normal(0, .01, (N - 1, 3))\nrec, valid = batch_np_matrix_to_pycolmap(pts + rng.normal(0, .01, pts.shape), noisy, np.repeat(K[None], N, 0), tracks,\n                                         np.array([W, W]), masks=np.ones((N, P), bool), max_reproj_error=8,\n                                         shared_camera=True, camera_type='PINHOLE', points_rgb=np.full((P, 3), 128, np.uint8))\nprint('built', rec is not None, rec.num_points3D() if rec else None)\nbefore = rec.compute_mean_reprojection_error()\npycolmap.bundle_adjustment(rec, pycolmap.BundleAdjustmentOptions())\nprint('reproj before/after', round(before, 3), round(rec.compute_mean_reprojection_error(), 3))\nimg = rec.images[1]\npose = img.cam_from_world() if callable(img.cam_from_world) else img.cam_from_world\nprint('pose api ok', pose.matrix().shape, rec.cameras[img.camera_id].calibration_matrix().shape)\nprint('PROBE OK')\nPY\nfor v in 3.12.6 3.13.0 4.1.1; do echo \"== pycolmap $v\"; pip install -q pycolmap==$v 2>&1 | tail -1; python /tmp/probe.py 2>&1 | tail -6; done",
+  "commit": "e5baa9aebf6a16043c9978de1ea3dfb733150161",
+  "started": "2026-09-25T07:36:04Z",
+  "finished": "2026-09-25T07:36:41Z",
+  "elapsed_seconds": 37,
+  "exit_code": 0,
+  "error": null,
+  "gpu": {
+    "name": "NVIDIA A100-SXM4-80GB",
+    "memory_total_mib": 81920,
+    "memory_used_mib": 0,
+    "utilization": 0
+  },
+  "log_total_lines": 56,
+  "tail_start": 0,
+  "branch": "colab-runs/20260925-073554-probe-ba-0ec1",
+  "published_commit": "97a5abe41b431ec7f39ff3d8f9aebdd36b20faa2",
+  "release": null,
+  "assets": [],
+  "updated": "2026-09-25T07:36:41Z"
+}
