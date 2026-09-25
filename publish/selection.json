@@ -1,0 +1,283 @@
+{
+  "images": [
+    {
+      "id": "0001",
+      "name": "000002.jpg",
+      "file": "originals/0001.jpg",
+      "thumbnail": "thumbnails/0001.jpg",
+      "sha256": "cdbe23cde74fa0021dde4c1419114795e9b6fe0a2722e9092b9a2dee834b418e",
+      "timestamp_seconds": 0.21987
+    },
+    {
+      "id": "0004",
+      "name": "000005.jpg",
+      "file": "originals/0004.jpg",
+      "thumbnail": "thumbnails/0004.jpg",
+      "sha256": "54c0b3beb20b54148f0c3bee9a596f9b07d1ce0bc70848cee3d3d4dce1c34f51",
+      "timestamp_seconds": 0.879479
+    },
+    {
+      "id": "0008",
+      "name": "000009.jpg",
+      "file": "originals/0008.jpg",
+      "thumbnail": "thumbnails/0008.jpg",
+      "sha256": "2c271643d01c71cba658bfa75b278c33b49e2d9f53e1bcc4447b3897554a68e1",
+      "timestamp_seconds": 1.75896
+    },
+    {
+      "id": "0014",
+      "name": "000015.jpg",
+      "file": "originals/0014.jpg",
+      "thumbnail": "thumbnails/0014.jpg",
+      "sha256": "4db7e862398231876652ce02e33b050552e0c6841b8b22303ef090b2fd6604ca",
+      "timestamp_seconds": 3.07818
+    },
+    {
+      "id": "0016",
+      "name": "000017.jpg",
+      "file": "originals/0016.jpg",
+      "thumbnail": "thumbnails/0016.jpg",
+      "sha256": "ff93dd1859544d6a9f154f822743e67d0884b39954e8354436035a440256a1b9",
+      "timestamp_seconds": 3.51792
+    },
+    {
+      "id": "0020",
+      "name": "000021.jpg",
+      "file": "originals/0020.jpg",
+      "thumbnail": "thumbnails/0020.jpg",
+      "sha256": "816845be186f35e1b2d688342154e68f49ec49ff180ab884fea54d0d97970de7",
+      "timestamp_seconds": 4.3974
+    },
+    {
+      "id": "0025",
+      "name": "000026.jpg",
+      "file": "originals/0025.jpg",
+      "thumbnail": "thumbnails/0025.jpg",
+      "sha256": "0f009f547a35ba8cf46b11efcb0dfc85999d602d2ed6b8e507a420b8657b65e7",
+      "timestamp_seconds": 5.49674
+    },
+    {
+      "id": "0029",
+      "name": "000030.jpg",
+      "file": "originals/0029.jpg",
+      "thumbnail": "thumbnails/0029.jpg",
+      "sha256": "e6b5a8c7b7f918e3e4de6473cde9b1b52016e4d6af31302ea697b4db1eb8c016",
+      "timestamp_seconds": 6.37622
+    },
+    {
+      "id": "0035",
+      "name": "000036.jpg",
+      "file": "originals/0035.jpg",
+      "thumbnail": "thumbnails/0035.jpg",
+      "sha256": "87a945cb5b34a665d9b07e71be25e199875b322ba0e03d8a494c422ade686a4d",
+      "timestamp_seconds": 7.69544
+    },
+    {
+      "id": "0039",
+      "name": "000040.jpg",
+      "file": "originals/0039.jpg",
+      "thumbnail": "thumbnails/0039.jpg",
+      "sha256": "b91be8b70defd0a957dd5f15723fc1fc427f5fb529798dee2f4b917798fd1fc3",
+      "timestamp_seconds": 8.57492
+    },
+    {
+      "id": "0043",
+      "name": "000044.jpg",
+      "file": "originals/0043.jpg",
+      "thumbnail": "thumbnails/0043.jpg",
+      "sha256": "1bfb618cf75822c485632bed5f1ece798cd993df299d11f43d0ca0d1f01358c6",
+      "timestamp_seconds": 9.4544
+    },
+    {
+      "id": "0046",
+      "name": "000047.jpg",
+      "file": "originals/0046.jpg",
+      "thumbnail": "thumbnails/0046.jpg",
+      "sha256": "3a2c0937de60ef2ed9f41f65bc855e4052531075d8151df617ecbf7af8fa06df",
+      "timestamp_seconds": 10.114
+    },
+    {
+      "id": "0051",
+      "name": "000052.jpg",
+      "file": "originals/0051.jpg",
+      "thumbnail": "thumbnails/0051.jpg",
+      "sha256": "8b567eb2800b90ef83b48bccbfbe41e7e0a0056c6144e4a89173192fb1b5b728",
+      "timestamp_seconds": 11.2134
+    },
+    {
+      "id": "0052",
+      "name": "000053.jpg",
+      "file": "originals/0052.jpg",
+      "thumbnail": "thumbnails/0052.jpg",
+      "sha256": "dc7dcf06337baa14bfad2a1658dd8a240abfab0ac81e5e4a9bce06fe9f19ba5d",
+      "timestamp_seconds": 11.4332
+    },
+    {
+      "id": "0058",
+      "name": "000059.jpg",
+      "file": "originals/0058.jpg",
+      "thumbnail": "thumbnails/0058.jpg",
+      "sha256": "db7d9e4caa60fecc23f3d0ecec0129e3d6a0fc85bec10bc69d40157800c8c114",
+      "timestamp_seconds": 12.7524
+    },
+    {
+      "id": "0062",
+      "name": "000063.jpg",
+      "file": "originals/0062.jpg",
+      "thumbnail": "thumbnails/0062.jpg",
+      "sha256": "e9524a8c608b62764ad69ce321589772441734eb113dfe6d2aa4f1608d3bdb8b",
+      "timestamp_seconds": 13.6319
+    },
+    {
+      "id": "0066",
+      "name": "000067.jpg",
+      "file": "originals/0066.jpg",
+      "thumbnail": "thumbnails/0066.jpg",
+      "sha256": "920a02a4d5bc114a76de398ee4b939620824566b411a855dc0a062c2d99e02b6",
+      "timestamp_seconds": 14.5114
+    },
+    {
+      "id": "0068",
+      "name": "000069.jpg",
+      "file": "originals/0068.jpg",
+      "thumbnail": "thumbnails/0068.jpg",
+      "sha256": "35a38dfc5f3df729c80bd9ae672eca839ce63543097eb5ef9318d7a7fe06a50f",
+      "timestamp_seconds": 14.9511
+    },
+    {
+      "id": "0075",
+      "name": "000076.jpg",
+      "file": "originals/0075.jpg",
+      "thumbnail": "thumbnails/0075.jpg",
+      "sha256": "66b99bdd599f706eb94098fbfc37ab41ba420a8e900251a3e98e3acbfc386e7e",
+      "timestamp_seconds": 16.4902
+    },
+    {
+      "id": "0076",
+      "name": "000077.jpg",
+      "file": "originals/0076.jpg",
+      "thumbnail": "thumbnails/0076.jpg",
+      "sha256": "1ebee7c7e64d4dde197a55adb591971c961be5fb7639a7079ec8b4d5577ff291",
+      "timestamp_seconds": 16.7101
+    },
+    {
+      "id": "0082",
+      "name": "000083.jpg",
+      "file": "originals/0082.jpg",
+      "thumbnail": "thumbnails/0082.jpg",
+      "sha256": "96a0f49bcf0dc8ef5ce49c9d9888cbbdc367184b393aebc7cb3131cedafddca5",
+      "timestamp_seconds": 18.0293
+    },
+    {
+      "id": "0087",
+      "name": "000088.jpg",
+      "file": "originals/0087.jpg",
+      "thumbnail": "thumbnails/0087.jpg",
+      "sha256": "292bf45dea1678e7b29dae09417b09d4bda52ca47aeb9ce26b49e864f320e137",
+      "timestamp_seconds": 19.1287
+    },
+    {
+      "id": "0088",
+      "name": "000089.jpg",
+      "file": "originals/0088.jpg",
+      "thumbnail": "thumbnails/0088.jpg",
+      "sha256": "48d8d21d595e8427f1f9d0e6ec8f4f817c3a7e19962c1914356002be11820ffb",
+      "timestamp_seconds": 19.3485
+    },
+    {
+      "id": "0095",
+      "name": "000096.jpg",
+      "file": "originals/0095.jpg",
+      "thumbnail": "thumbnails/0095.jpg",
+      "sha256": "8d4dd4186e69b5ee7c79cd23f97fa373c64df92fbfc48b68708f58d998703e16",
+      "timestamp_seconds": 20.8876
+    },
+    {
+      "id": "0098",
+      "name": "000099.jpg",
+      "file": "originals/0098.jpg",
+      "thumbnail": "thumbnails/0098.jpg",
+      "sha256": "c82955710b4aff70e197908d1ac899e3ffc58374c4db9fafb32fdd07488fd131",
+      "timestamp_seconds": 21.5472
+    },
+    {
+      "id": "0103",
+      "name": "000104.jpg",
+      "file": "originals/0103.jpg",
+      "thumbnail": "thumbnails/0103.jpg",
+      "sha256": "4337d202ac6df80daa908b39391f50593a844c0a1a64910e355831d97afbe5aa",
+      "timestamp_seconds": 22.6466
+    },
+    {
+      "id": "0106",
+      "name": "000107.jpg",
+      "file": "originals/0106.jpg",
+      "thumbnail": "thumbnails/0106.jpg",
+      "sha256": "35702604e6e31ce188d551c55ec1ca4be4e59ac0b968ea75181884cd40e9c53b",
+      "timestamp_seconds": 23.3062
+    },
+    {
+      "id": "0109",
+      "name": "000110.jpg",
+      "file": "originals/0109.jpg",
+      "thumbnail": "thumbnails/0109.jpg",
+      "sha256": "721275946b7a8ac860a6ac78bc6d7ad4212fc15acf71d8191e7a62da00c843cb",
+      "timestamp_seconds": 23.9658
+    },
+    {
+      "id": "0114",
+      "name": "000115.jpg",
+      "file": "originals/0114.jpg",
+      "thumbnail": "thumbnails/0114.jpg",
+      "sha256": "368a60fee8befe04bd045f97643ab4969158d973fd33f20151bd65fae2ba8c7d",
+      "timestamp_seconds": 25.0652
+    },
+    {
+      "id": "0119",
+      "name": "000120.jpg",
+      "file": "originals/0119.jpg",
+      "thumbnail": "thumbnails/0119.jpg",
+      "sha256": "4289756baa28ea71f8e08f924cc8a9cf5b2a9694ad559d128899676a29282e5b",
+      "timestamp_seconds": 26.1645
+    },
+    {
+      "id": "0121",
+      "name": "000122.jpg",
+      "file": "originals/0121.jpg",
+      "thumbnail": "thumbnails/0121.jpg",
+      "sha256": "5c541f47f005215103dcb3b52c9a41fee4c8a6115f28f853783dce14aeb745e4",
+      "timestamp_seconds": 26.6042
+    },
+    {
+      "id": "0125",
+      "name": "000126.jpg",
+      "file": "originals/0125.jpg",
+      "thumbnail": "thumbnails/0125.jpg",
+      "sha256": "1dd3865eb5e6f6b4af9043ccebcf103bb3393c53f43de1ea000aec95be439071",
+      "timestamp_seconds": 27.4837
+    }
+  ],
+  "requested_count": 32,
+  "selected_count": 32,
+  "candidate_count": 128,
+  "rejected": [
+    {
+      "id": "0105",
+      "reason": "duplicate",
+      "sharpness": 975.2445227434887
+    }
+  ],
+  "rejected_count": 1,
+  "unselected_count": 96,
+  "attempts": [
+    {
+      "limit": 32,
+      "count": 32,
+      "gaps": []
+    }
+  ],
+  "gaps": [],
+  "connected": true,
+  "method": "temporal bins, Laplacian sharpness, perceptual duplicates, ORB/RANSAC adjacent overlap",
+  "quality_status": "requires_visual_review"
+}
