@@ -1,0 +1,11 @@
+$ git fetch --quiet origin feature/courtyard-studio
+$ git reset --hard origin/feature/courtyard-studio
+HEAD is now at e5baa9a Show source photos at sweeps, drop free-space floaters, cut the ceiling
+$ python -m colab.pipeline run --source video --input /content/colab_inputs/IMG_6608.MOV --name img6608 --stages package
+[07:17:14] package: Bắt đầu
+[07:18:52] tidy: splat.ply: 1,000,000 → 769,663 Gaussian
+[07:20:21] tidy: baseline.ply: 1,000,000 → 840,935 Gaussian
+[07:20:43] package: Đã chuẩn bị file cho GitHub release
+[07:20:45] package: Đã lưu /content/drive/MyDrive/courtyard-results/img6608-20260925-072043.zip
+[07:20:45] package: Kết quả: /content/work/img6608/enhance · /content/work/img6608/results.zip (447.0 MiB)
+[07:20:45] package: Xong sau 212 giây

@@ -1,0 +1,40 @@
+{
+  "id": "20260925-071702-img6608-package-e189",
+  "state": "succeeded",
+  "cmd": "python -m colab.pipeline run --source video --input /content/colab_inputs/IMG_6608.MOV --name img6608 --stages package",
+  "commit": "e5baa9aebf6a16043c9978de1ea3dfb733150161",
+  "started": "2026-09-25T07:17:14Z",
+  "finished": "2026-09-25T07:21:20Z",
+  "elapsed_seconds": 316,
+  "exit_code": 0,
+  "error": null,
+  "gpu": {
+    "name": "NVIDIA A100-SXM4-80GB",
+    "memory_total_mib": 81920,
+    "memory_used_mib": 0,
+    "utilization": 0
+  },
+  "log_total_lines": 11,
+  "tail_start": 0,
+  "branch": "colab-runs/20260925-071702-img6608-package-e189",
+  "published_commit": "13d7a437939ea7e5a3c161ac31876c8cf4f3cabe",
+  "release": "colab-run-20260925-071702-img6608-package-e189",
+  "assets": [
+    {
+      "name": "baseline.ply",
+      "id": 587786331,
+      "size": 198462137
+    },
+    {
+      "name": "results.zip",
+      "id": 587786775,
+      "size": 468683969
+    },
+    {
+      "name": "splat.ply",
+      "id": 587787949,
+      "size": 181641945
+    }
+  ],
+  "updated": "2026-09-25T07:22:30Z"
+}
