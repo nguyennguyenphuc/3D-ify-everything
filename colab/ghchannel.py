@@ -6,7 +6,8 @@ Transport (only api.github.com / uploads.github.com are needed on both sides):
 - a comment starting with ``JOB_MARK`` submits a job, ``CANCEL_MARK`` cancels one;
 - the agent keeps one ``STATUS_MARK`` comment per job updated with state + log tail;
 - small outputs are published as a single orphan commit on ``colab-runs/<id>``;
-- large outputs are release assets on tag ``colab-run-<id>``.
+- large outputs are release assets on tag ``colab-run-<id>``;
+- private inputs are assets of the draft release ``INPUTS_RELEASE``, fetched by the agent before a job.
 """
 import base64
 import json
@@ -26,6 +27,8 @@ STATUS_MARK = '<!-- colab-status '
 HEARTBEAT_MARK = '<!-- colab-heartbeat -->'
 ID_RE = re.compile(r'^[a-z0-9][a-z0-9-]{2,62}$')
 TERMINAL = {'succeeded', 'failed', 'cancelled', 'rejected', 'interrupted'}
+INPUTS_RELEASE = 'colab-inputs'
+ASSET_RE = re.compile(r'^[A-Za-z0-9][A-Za-z0-9._-]{0,200}$')
 
 
 class GitHubError(RuntimeError):
@@ -132,6 +135,17 @@ class GitHub:
         payload = {'tag_name': tag, 'name': tag, 'body': body, 'prerelease': True}
         if target: payload['target_commitish'] = target
         return self.request('POST', self.repo_path('/releases'), payload)
+
+    def draft_release(self, name, create=False):
+        """A draft release is invisible to the public even on a public repo; find it by name (tags skip drafts)."""
+        for page in range(1, 11):
+            releases = self.request('GET', self.repo_path('/releases'), params={'per_page': 100, 'page': page})
+            for r in releases:
+                if r.get('draft') and r.get('name') == name: return r
+            if len(releases) < 100: break
+        if not create: raise GitHubError(404, f'draft release {name}')
+        return self.request('POST', self.repo_path('/releases'),
+                            {'tag_name': name, 'name': name, 'draft': True, 'body': 'Input riêng tư cho agent Colab.'})
 
     def upload_asset(self, release, path, name=None):
         name = name or os.path.basename(path)

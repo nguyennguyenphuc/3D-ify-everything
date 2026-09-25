@@ -16,8 +16,8 @@ import subprocess
 import sys
 import time
 from pathlib import Path
-from .ghchannel import (GitHub, GitHubError, CANCEL_MARK, HEARTBEAT_MARK, ID_RE, JOB_MARK, TERMINAL, fenced,
-                        parse_fenced, release_tag, runs_branch, status_marker)
+from .ghchannel import (GitHub, GitHubError, ASSET_RE, CANCEL_MARK, HEARTBEAT_MARK, ID_RE, INPUTS_RELEASE, JOB_MARK, TERMINAL,
+                        fenced, parse_fenced, release_tag, runs_branch, status_marker)
 
 VERSION = 1
 TRUSTED = {'OWNER', 'MEMBER', 'COLLABORATOR'}
@@ -80,6 +80,7 @@ class Agent:
         self.status_every, self.publish_every, self.heartbeat_every = status_every, publish_every, heartbeat_every
         self.clock = clock
         self.root.mkdir(parents=True, exist_ok=True)
+        self.inputs = self.root.parent/'colab_inputs'
         self.issue = None
         self.queue, self.done, self.current = [], set(), None
         self.rejected = set()
@@ -148,6 +149,9 @@ class Agent:
         env = spec.get('env', {})
         if not isinstance(env, dict) or not all(isinstance(k, str) and isinstance(v, str) for k, v in env.items()):
             return 'env phải là {str: str}'
+        inputs = spec.get('inputs', [])
+        if not isinstance(inputs, list) or len(inputs) > 10 or not all(isinstance(n, str) and ASSET_RE.match(n) for n in inputs):
+            return 'inputs phải là danh sách tên asset (chữ, số, . _ -)'
         try:
             if not 0 < float(spec.get('timeout_minutes', 240)) <= 24 * 60: return 'timeout_minutes ngoài khoảng'
         except (TypeError, ValueError):
@@ -168,9 +172,15 @@ class Agent:
                         job.started = job.finished = now()
                         return False
             job.commit = (git(self.workdir, 'rev-parse', 'HEAD').stdout.strip() or None) if (self.workdir/'.git').exists() else None
+            try:
+                self.fetch_inputs(job, log)
+            except (GitHubError, OSError) as e:
+                job.state, job.error, job.exit_code = 'failed', f'Không tải được input: {e}', None
+                job.started = job.finished = now()
+                return False
             log.write(f'$ {job.spec["cmd"]}\n')
         env = dict(os.environ, PYTHONUNBUFFERED='1', COLAB_JOB_ID=job.id, COLAB_JOB_DIR=str(job.dir),
-                   COLAB_PUBLISH_DIR=str(job.publish_dir), COLAB_RELEASE_DIR=str(job.release_dir))
+                   COLAB_PUBLISH_DIR=str(job.publish_dir), COLAB_RELEASE_DIR=str(job.release_dir), COLAB_INPUT_DIR=str(self.inputs))
         for secret in ('GH_TOKEN', 'GITHUB_TOKEN'): env.pop(secret, None)
         env.update(job.spec.get('env', {}))
         log = job.log_path.open('a')
@@ -179,6 +189,23 @@ class Agent:
         job._log_handle = log
         job.state, job.started, job._t0 = 'running', now(), self.clock()
         return True
+
+    def fetch_inputs(self, job, log):
+        """Download the job's private inputs from the draft release with the agent token (kept across jobs)."""
+        names = job.spec.get('inputs', [])
+        if not names: return
+        self.inputs.mkdir(parents=True, exist_ok=True)
+        assets = {a['name']: a for a in self.gh.draft_release(INPUTS_RELEASE).get('assets', [])}
+        for name in names:
+            if name not in assets: raise GitHubError(404, f'asset {name} không có trong {INPUTS_RELEASE}')
+            dest = self.inputs/name
+            if dest.exists() and dest.stat().st_size == assets[name]['size']:
+                log.write(f'input {name}: đã có ({dest})\n'); continue
+            part = self.inputs/(name + '.part')
+            self.gh.download_asset(assets[name]['id'], part)
+            part.replace(dest)
+            log.write(f'input {name}: đã tải {assets[name]["size"] / 2**20:.1f} MiB → {dest}\n')
+        log.flush()
 
     def cancel(self, job):
         job.cancel_requested = True

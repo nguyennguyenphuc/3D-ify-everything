@@ -112,3 +112,15 @@ def test_tidy_crops_to_captured_region(work):
     assert info['after'] >= 1990 and info['after'] == info['before'] - 3 - info['isolated']
     info = pipeline.tidy_splat(dst, dst, box)  # in place is safe
     assert info['before'] == info['after'] + info['isolated']
+
+
+def test_single_stage_runs_reuse_finished_stages(work):
+    for stage in ('inputs', 'vggt', 'artifixer', 'package'):
+        ns = args(name='t3', stages=stage); ns.fake, ns.source, ns.force = True, 'synthetic', False
+        pipeline.run(ns)
+    enhance = work/'work'/'t3'/'enhance'
+    assert len(list((enhance/'fixed_frames').glob('*.png'))) == 81 and (enhance/'compare.jpg').exists()
+    assert (enhance/'scene.json').exists()
+    ns = args(name='t4', stages='vggt'); ns.fake, ns.source, ns.force = False, 'video', False
+    with pytest.raises(SystemExit):
+        pipeline.run(ns)

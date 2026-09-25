@@ -50,6 +50,13 @@ class FakeGitHub:
             self.releases[tag] = {'id': next(self.ids), 'tag_name': tag, 'assets': [], 'data': {}}
         return self.releases[tag]
 
+    def draft_release(self, name, create=False):
+        key = f'draft:{name}'
+        if key not in self.releases:
+            if not create: raise GitHubError(404, key)
+            self.releases[key] = {'id': next(self.ids), 'name': name, 'draft': True, 'assets': [], 'data': {}}
+        return self.releases[key]
+
     def upload_asset(self, release, path, name=None):
         data = open(path, 'rb').read()
         asset = {'id': next(self.ids), 'name': name, 'size': len(data)}

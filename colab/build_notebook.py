@@ -136,8 +136,179 @@ files.download(f"/content/work/{NAME}/results.zip")'''),
     ])
 
 
+VIDEO_INTRO = f'''# Video → tour 3D kiểu Matterport trên Colab
+Notebook độc lập: clone repo public [`{REPO}`](https://github.com/{REPO}/tree/{BRANCH}) (không cần token), chạy từng model một và hiện kết quả trung gian.
+Chạy tuần tự từ trên xuống; mỗi bước lưu kết quả, nên chạy lại chỉ làm tiếp phần chưa xong.
+
+## Model dùng trong pipeline
+| Bước | Model / công cụ | Nguồn | Vai trò |
+|---|---|---|---|
+| 1 | FFmpeg + ORB/RANSAC (OpenCV) | `studio/sources.py`, `studio/selection.py` | Trích frame, bỏ ảnh mờ/trùng, kiểm tra các frame liền nhau có vùng chung |
+| 2 | **VGGT-1B** (Meta) | [`facebook/VGGT-1B`](https://huggingface.co/facebook/VGGT-1B), repo `facebookresearch/vggt` | Một lần suy luận cho mọi frame: vị trí camera + depth → point cloud + COLMAP |
+| 3a | **3DGUT** (3DGRUT, NVIDIA), chiến lược MCMC | submodule `3DGRUT-ArtiFixer` của ArtiFixer | Train Gaussian Splat gốc từ ảnh thật (train riêng cho cảnh này, không có trọng số sẵn) |
+| 3b | **MoGe-2** (Microsoft) | `microsoft/MoGe` | Ước lượng scale theo mét cho điều kiện camera của ArtiFixer |
+| 3c | Text encoder **umt5** của Wan2.1 | `Wan-AI/Wan2.1-T2V-1.3B-Diffusers` | Mã hoá một caption cố định (thay Qwen3-VL-30B của ArtiFixer) |
+| 3d | **ArtiFixer 1.3B** (NVIDIA, SIGGRAPH 2026) | [`nv-tlabs/ArtiFixer`](https://github.com/nv-tlabs/ArtiFixer) @ `a392c4d`, checkpoint [`nvidia/ArtiFixer`](https://huggingface.co/nvidia/ArtiFixer) trên nền Wan2.1-T2V-1.3B | Video diffusion sửa floater/lỗ trên các khung render từ một quỹ đạo camera mới |
+| 3e | **ArtiFixer3D** | cùng repo ArtiFixer | Distill ảnh thật + khung đã sửa thành splat mới (`splat.ply`) |
+| 4 | Cắt gọn + viewer tham quan | `colab/pipeline.py`, `colab/viewer.html` (Three.js + Spark) | Bỏ Gaussian ngoài vùng quay, floater; tour bấm-để-đi kiểu Matterport |
+
+**Có dùng [ArtiFixer](https://github.com/nv-tlabs/ArtiFixer):** có, bước 3 (prep 3DGUT, inference 1.3B, ArtiFixer3D).
+**Không dùng:** thư viện **nerfstudio** (chỉ ghi file `transforms.json` theo định dạng của nó, không import nerfstudio), COLMAP SfM (pose lấy từ VGGT), OpenSplat (chỉ app Mac), Qwen3-VL.
+
+## Yêu cầu và thời gian
+- Runtime **GPU A100 80 GB hoặc H100** (+ High-RAM). A100 40 GB: bật `LOW_MEMORY`.
+- `setup` lần đầu ~7–30 phút (tải ~30 GB model, cache vào Drive). Thử nghiệm courtyard 8 ảnh trên A100: VGGT 37 giây, 3DGUT + ArtiFixer ~11 phút, ArtiFixer3D 30.000 bước ~2 giờ 20 phút.
+- Video: quay chậm, liên tục, vùng chung giữa các khung ≥60%. Chỉ vùng đã quay mới được dựng.'''
+
+VIDEO_PARAMS = f'''#@title Tham số
+VIDEO = "/content/drive/MyDrive/3D/IMG_6608.MOV"  #@param {{type:"string"}}
+#@markdown Đường dẫn video trên Google Drive (sau khi mount) hoặc URL `https://…`.
+NAME = "img6608"  #@param {{type:"string"}}
+TARGET_FRAMES = 32  #@param {{type:"integer"}}
+RECONSTRUCTION_STEPS = 10000  #@param {{type:"integer"}}
+ARTIFIXER3D_STEPS = 30000  #@param {{type:"integer"}}
+#@markdown Giảm `ARTIFIXER3D_STEPS` (vd 15000) để nhanh hơn ~1 giờ, đổi lại chất lượng thấp hơn.
+TRAJECTORY_FRAMES = 81  #@param {{type:"integer"}}
+LOW_MEMORY = False  #@param {{type:"boolean"}}
+REPO = "{REPO}"  #@param {{type:"string"}}
+BRANCH = "{BRANCH}"  #@param {{type:"string"}}'''
+
+VIDEO_SETUP = '''#@title 0 · Clone code, mount Drive, cài đặt model
+import json, os, shlex, subprocess, sys
+from pathlib import Path
+from IPython.display import Image, display
+if not Path("/content/drive/MyDrive").is_dir():
+    try:
+        from google.colab import drive
+        drive.mount("/content/drive")
+    except Exception as e:  # papermill/không có Drive: vẫn chạy được với VIDEO là URL hoặc file cục bộ
+        print("Không mount Drive:", e)
+CODE = Path("/content/3D-ify-everything")
+url = f"https://github.com/{REPO}.git"
+if not (CODE/".git").exists():
+    subprocess.run(["git", "clone", "-q", "-b", BRANCH, url, str(CODE)], check=True)
+else:
+    subprocess.run(["git", "-C", str(CODE), "fetch", "-q", "origin", BRANCH], check=True)
+    subprocess.run(["git", "-C", str(CODE), "reset", "-q", "--hard", f"origin/{BRANCH}"], check=True)
+os.chdir(CODE)
+print(subprocess.run(["git", "log", "-1", "--oneline"], capture_output=True, text=True).stdout)
+
+def pipeline(*args):
+    """Chạy `python -m colab.pipeline …`, in log trực tiếp, báo lỗi (dừng notebook) nếu thất bại."""
+    cmd = [sys.executable, "-m", "colab.pipeline", *map(str, args)]
+    print("$", shlex.join(cmd), flush=True)
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+    for line in p.stdout: print(line, end="", flush=True)
+    if p.wait(): raise RuntimeError(f"pipeline {args[0]} thất bại (exit {p.returncode}); xem log ở trên")
+
+def grid(paths, cols=8, width=1600, labels=None):
+    """Ghép ảnh thành một lưới JPEG nhỏ để hiện trong notebook."""
+    from PIL import Image as PILImage, ImageDraw
+    paths = [Path(p) for p in paths]
+    if not paths: print("(không có ảnh)"); return
+    cell = width // cols
+    ims = []
+    for p in paths:
+        with PILImage.open(p) as im:
+            im = im.convert("RGB"); im.thumbnail((cell, cell)); ims.append(im)
+    h = max(i.height for i in ims)
+    sheet = PILImage.new("RGB", (cell * cols, h * ((len(ims) + cols - 1) // cols)), (16, 19, 18))
+    for k, im in enumerate(ims):
+        x, y = (k % cols) * cell, (k // cols) * h
+        sheet.paste(im, (x, y))
+        if labels: ImageDraw.Draw(sheet).text((x + 4, y + 4), str(labels[k]), fill=(255, 255, 255))
+    out = Path("/tmp")/f"grid-{abs(hash(tuple(map(str, paths))))}.jpg"
+    sheet.save(out, quality=80); display(Image(str(out)))
+
+BASE = Path("/content/work")/NAME
+RUN_ARGS = ["--source", "video", "--input", VIDEO, "--name", NAME, "--target-frames", TARGET_FRAMES,
+            "--reconstruction-steps", RECONSTRUCTION_STEPS, "--artifixer3d-steps", ARTIFIXER3D_STEPS,
+            "--trajectory-frames", TRAJECTORY_FRAMES] + (["--low-memory"] if LOW_MEMORY else [])
+pipeline("check")
+pipeline("setup")'''
+
+VIDEO_STEP1 = '''#@title 1 · Video → frame (FFmpeg, chọn frame rõ + có vùng chung)
+pipeline("run", *RUN_ARGS, "--stages", "inputs")
+video = json.loads((BASE/"project"/"video.json").read_text())
+sel = json.loads((BASE/"run"/"selection.json").read_text())
+print(f"Video {video['duration_seconds']:.1f} giây · {video['candidate_count']} frame ứng viên · "
+      f"chọn {sel['selected_count']} · loại {sel['rejected_count']} ảnh mờ/gần trùng · liên kết đủ: {sel['connected']}")
+grid([BASE/"project"/m["thumbnail"] for m in sel["images"]],
+     labels=[f"{m.get('timestamp_seconds', 0):.1f}s" for m in sel["images"]])'''
+
+VIDEO_STEP2 = '''#@title 2 · VGGT-1B: vị trí camera + depth trong một lần suy luận
+pipeline("run", *RUN_ARGS, "--stages", "vggt")
+geo = json.loads((BASE/"run"/"geometry"/"metrics.json").read_text())
+print(f"{geo['camera_count']} camera · {geo['point_count']:,} điểm · suy luận {geo['inference_seconds']:.1f} giây · "
+      f"VRAM đỉnh {geo['peak_reserved_bytes'] / 2**30:.1f} GB · "
+      f"điểm nhất quán giữa các góc nhìn {sum(geo['cross_view_supported_fraction']) / len(geo['cross_view_supported_fraction']):.0%}")
+print("Depth tương đối (đỏ = xa, xanh = gần; đen = bị loại vì confidence thấp):")
+grid(sorted((BASE/"run"/"geometry").glob("depth_*.png")))'''
+
+VIDEO_STEP3 = '''#@title 3 · 3DGUT → ArtiFixer 1.3B → ArtiFixer3D (bước dài nhất)
+#@markdown 3a. Dựng scene COLMAP với một calibration chung, tạo quỹ đạo camera mới đi qua các góc đã quay.
+#@markdown 3b. Train **3DGUT** MCMC (`RECONSTRUCTION_STEPS`), render quỹ đạo; **MoGe-2** ước lượng scale.
+#@markdown 3c. **ArtiFixer 1.3B** sửa các khung render; 3d. **ArtiFixer3D** distill thành splat mới.
+pipeline("run", *RUN_ARGS, "--stages", "artifixer")
+af = json.loads((BASE/"stages"/"artifixer.json").read_text())
+pred = Path(af["pred"]); rendered = pred.parent/"rendered"
+frames = sorted(pred.glob("*.png"))
+pick = [frames[i] for i in range(0, len(frames), max(1, len(frames) // 4))][:4]
+print("Hàng trên: render 3DGUT gốc · hàng dưới: ArtiFixer đã sửa")
+grid([rendered/p.name for p in pick] + pick, cols=4)'''
+
+VIDEO_STEP4 = '''#@title 4 · Đóng gói: cắt gọn splat, viewer, results.zip
+pipeline("run", *RUN_ARGS, "--stages", "package")
+m = json.loads((BASE/"enhance"/"metrics.json").read_text())
+for name, t in (m.get("tidy") or {}).items():
+    print(f"{name}.ply: {t['before']:,} → {t['after']:,} Gaussian (ngoài vùng {t['outside_box']:,}, trong suốt {t['transparent']:,}, "
+          f"quá lớn {t['oversized']:,}, cô lập {t['isolated']:,})")
+print("Scale metric:", m.get("metric_scale"))
+if (BASE/"enhance"/"compare.jpg").exists(): display(Image(str(BASE/"enhance"/"compare.jpg"), width=900))
+print("\\n".join(m["files"][:20]))'''
+
+VIDEO_STEP5 = '''#@title 5 · Tour 3D trong trình duyệt (kéo để nhìn, bấm vòng tròn trên sàn để đi)
+PORT = 8765
+subprocess.Popen([sys.executable, "-m", "http.server", str(PORT), "--directory", str(BASE/"enhance")],
+                 stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+try:
+    from google.colab import output
+    output.serve_kernel_port_as_window(PORT, path="/index.html")
+except Exception as e:
+    print("Mở viewer trong Colab không được ở môi trường này:", e)
+    print(f"Tải results.zip, giải nén, chạy `python -m http.server {PORT}` trong thư mục đó rồi mở http://127.0.0.1:{PORT}")'''
+
+VIDEO_STEP6 = '''#@title 6 · Lưu kết quả
+zip_path = BASE/"results.zip"
+print(f"{zip_path} · {zip_path.stat().st_size / 2**20:.0f} MiB (đã tự sao lưu vào Drive/courtyard-results nếu Drive được mount)")
+try:
+    from google.colab import files
+    files.download(str(zip_path))
+except Exception as e:
+    print("Không tải trực tiếp được ở môi trường này:", e)'''
+
+
+def video_tour():
+    return notebook([
+        new_markdown_cell(VIDEO_INTRO),
+        new_code_cell(VIDEO_PARAMS, metadata={'tags': ['parameters']}),
+        new_code_cell(VIDEO_SETUP),
+        new_markdown_cell('## 1 · Video → frame\nFFmpeg trích tối đa 1.200 frame trải đều toàn video. Bộ chọn lấy `TARGET_FRAMES` frame rõ nhất theo từng khoảng thời gian, bỏ ảnh mờ và gần trùng, rồi kiểm tra ORB/RANSAC để các frame liền nhau có vùng chung. Thiếu liên kết thì thêm frame trung gian (tới 48 rồi 64) hoặc báo đoạn cần quay lại.'),
+        new_code_cell(VIDEO_STEP1),
+        new_markdown_cell('## 2 · VGGT-1B\nMọi frame đã chọn vào **một** lần suy luận (CUDA, bf16 cho aggregator). VGGT trả về vị trí/hướng camera, intrinsics và depth; điểm được giữ khi có confidence cao và khớp depth với góc nhìn lân cận. Kết quả ghi thành `points.ply`, `cameras.json` và COLMAP `sparse/0`, làm đầu vào cho 3DGUT (không chạy COLMAP SfM).'),
+        new_code_cell(VIDEO_STEP2),
+        new_markdown_cell('## 3 · 3DGUT → ArtiFixer → ArtiFixer3D\nĐây là phần dùng repo [nv-tlabs/ArtiFixer](https://github.com/nv-tlabs/ArtiFixer). 3DGUT dựng splat gốc từ ảnh thật; splat này còn floater và lỗ ở góc chưa quay kỹ. ArtiFixer (video diffusion 1.3B) nhìn các khung render từ một đường đi camera mới và vẽ lại cho sạch; ArtiFixer3D train lại splat từ ảnh thật cộng các khung đã sửa. AI có thể "vẽ thêm" chi tiết không có thật ở vùng thiếu dữ liệu.'),
+        new_code_cell(VIDEO_STEP3),
+        new_markdown_cell('## 4 · Đóng gói\nChuyển PLY của 3DGRUT sang định dạng 3DGS gọn, cắt bỏ Gaussian ngoài vùng đã quay / gần trong suốt / quá lớn / cô lập, và đóng gói viewer tour cùng `results.zip`.'),
+        new_code_cell(VIDEO_STEP4),
+        new_code_cell(VIDEO_STEP5),
+        new_code_cell(VIDEO_STEP6),
+    ], gpu='A100')
+
+
 def main():
-    for name, nb in (('agent_bootstrap.ipynb', agent_bootstrap()), ('courtyard_artifixer.ipynb', full_pipeline())):
+    for name, nb in (('agent_bootstrap.ipynb', agent_bootstrap()), ('courtyard_artifixer.ipynb', full_pipeline()),
+                     ('video_tour.ipynb', video_tour())):
         nbformat.validate(nb)
         nbformat.write(nb, HERE/name)
         print(HERE/name)

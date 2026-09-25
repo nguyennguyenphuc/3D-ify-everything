@@ -70,6 +70,10 @@ ArtiFixer không tăng độ phân giải ảnh nguồn. Để chi tiết gần 
 
 Mở `colab/courtyard_artifixer.ipynb` ([Open in Colab](https://colab.research.google.com/github/nguyennguyenphuc/3D-ify-everything/blob/feature/courtyard-studio/colab/courtyard_artifixer.ipynb)), chọn GPU H100 hoặc A100 + High-RAM rồi chạy lần lượt các ô.
 
+### Notebook từng bước cho video: `colab/video_tour.ipynb`
+
+[Open in Colab](https://colab.research.google.com/github/nguyennguyenphuc/3D-ify-everything/blob/feature/courtyard-studio/colab/video_tour.ipynb) · chạy độc lập (repo public, không cần token). Mỗi model một ô, có bảng model đã dùng (VGGT-1B, 3DGUT, MoGe-2, ArtiFixer 1.3B, ArtiFixer3D; không dùng nerfstudio), ảnh frame được chọn, depth, render trước/sau ArtiFixer và viewer tour. Đặt `VIDEO` là đường dẫn video trên Drive. Ô tham số có tag `parameters` nên chạy được bằng papermill: `papermill colab/video_tour.ipynb out.ipynb -p VIDEO /path/video.mov -p NAME phong`.
+
 ### Cách 2 · Điều khiển Colab từ máy khác qua GitHub
 
 Máy điều khiển (kể cả Claude Code trên cloud) chỉ cần truy cập `api.github.com`; không cần tunnel và không tải gì về máy cá nhân.
@@ -85,7 +89,11 @@ python -m colab.remote run "python -m colab.pipeline setup" --timeout 90
 python -m colab.remote run "python -m colab.pipeline run --source courtyard" --timeout 240 --name courtyard
 python -m colab.remote files <job-id>
 python -m colab.remote fetch <job-id> splat.ply out/splat.ply
+python -m colab.remote upload phong.mov                          # input riêng tư (draft release colab-inputs)
+python -m colab.remote run "python -m colab.pipeline run --source video --input \$COLAB_INPUT_DIR/phong.mov --name phong" --input phong.mov --timeout 300
 ```
+
+Input riêng tư nằm trong release **draft** `colab-inputs`, người ngoài không thấy dù repo public; agent tải về `$COLAB_INPUT_DIR` bằng token của nó trước khi chạy job.
 
 Cơ chế: issue `[colab-agent] control channel` là hộp thư. Issue body chứa heartbeat. Mỗi comment job là một lệnh shell. Agent cập nhật comment trạng thái (log tail) mỗi 20 giây. File nhỏ trong `$COLAB_PUBLISH_DIR` được đẩy lên nhánh `colab-runs/<id>`, file lớn trong `$COLAB_RELEASE_DIR` lên release `colab-run-<id>`. Chỉ comment của owner/member/collaborator hoặc login trong `--allow` mới được chạy. Ai ghi được comment như vậy là chạy được lệnh trên runtime Colab, nên chỉ thêm collaborator bạn tin cậy và token chỉ cấp cho repo này. Repo này public: comment của người lạ (không phải owner/collaborator) bị agent bỏ qua, nhưng code và log job ai cũng xem được, nên đừng in secret ra log. Trước mỗi job, agent `git reset --hard` về nhánh code mới nhất, nên sửa code chỉ cần push.
 

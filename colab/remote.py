@@ -8,6 +8,8 @@
     python -m colab.remote fetch <id> publish/metrics.json [dest]
     python -m colab.remote fetch <id> splat.ply [dest]      # release asset
     python -m colab.remote cancel <id>
+    python -m colab.remote upload video.mov                  # private input (draft release), then:
+    python -m colab.remote run "ls $COLAB_INPUT_DIR" --input video.mov
 
 Auth: GH_TOKEN/GITHUB_TOKEN if set; otherwise no header (an authenticating proxy may add one).
 """
@@ -20,8 +22,8 @@ import subprocess
 import sys
 import time
 from pathlib import Path
-from .ghchannel import (GitHub, GitHubError, CANCEL_MARK, JOB_MARK, TERMINAL, fenced, new_job_id, parse_fenced,
-                        release_tag, runs_branch, status_marker)
+from .ghchannel import (GitHub, GitHubError, ASSET_RE, CANCEL_MARK, INPUTS_RELEASE, JOB_MARK, TERMINAL, fenced, new_job_id,
+                        parse_fenced, release_tag, runs_branch, status_marker)
 
 
 def default_repo():
@@ -70,10 +72,11 @@ class Remote:
         self.say(f'Code: {data.get("code_branch")} @ {str(data.get("code_commit"))[:10]} · job đang chạy: {data.get("busy_job")} · hàng đợi: {data.get("queued")}')
         return 0 if alive else 2
 
-    def submit(self, cmd, name='job', timeout_minutes=240, pull=True, env=None, branch=None):
+    def submit(self, cmd, name='job', timeout_minutes=240, pull=True, env=None, branch=None, inputs=()):
         job_id = new_job_id(name)
         spec = {'id': job_id, 'cmd': cmd, 'timeout_minutes': timeout_minutes, 'pull': pull, 'env': env or {}}
         if branch: spec['branch'] = branch
+        if inputs: spec['inputs'] = list(inputs)
         self.gh.comment(self.issue(create=True)['number'], JOB_MARK + '\n' + fenced(spec))
         self.say(f'Đã gửi job {job_id}')
         return job_id
@@ -136,6 +139,16 @@ class Remote:
         self.say(f'Đã tải {dest}')
         return dest
 
+    def upload(self, path, name=None):
+        """Put a private input in the draft release; jobs name it with --input."""
+        path = Path(path)
+        name = name or path.name
+        if not ASSET_RE.match(name): raise SystemExit(f'Tên asset không hợp lệ: {name!r} (chỉ chữ, số, . _ -)')
+        release = self.gh.draft_release(INPUTS_RELEASE, create=True)
+        asset = self.gh.upload_asset(release, str(path), name)
+        self.say(f'Đã upload {asset["name"]} ({asset["size"]/2**20:.1f} MiB) vào draft release {INPUTS_RELEASE}')
+        return asset
+
     def cancel(self, job_id):
         self.gh.comment(self.issue()['number'], CANCEL_MARK + '\n' + fenced({'id': job_id}))
         self.say(f'Đã yêu cầu hủy {job_id}')
@@ -154,17 +167,19 @@ def main(argv=None):
         p.add_argument('--no-pull', action='store_true')
         p.add_argument('--branch')
         p.add_argument('--env', action='append', default=[], help='KEY=VALUE')
+        p.add_argument('--input', action='append', default=[], help='asset đã upload; agent tải vào $COLAB_INPUT_DIR')
     p = sub.add_parser('logs'); p.add_argument('id'); p.add_argument('--follow', action='store_true')
     p = sub.add_parser('wait'); p.add_argument('id'); p.add_argument('--timeout', type=float, default=None, help='phút')
     p = sub.add_parser('files'); p.add_argument('id')
     p = sub.add_parser('fetch'); p.add_argument('id'); p.add_argument('name'); p.add_argument('dest', nargs='?')
     p = sub.add_parser('cancel'); p.add_argument('id')
+    p = sub.add_parser('upload'); p.add_argument('path'); p.add_argument('--name')
     args = parser.parse_args(argv)
     remote = Remote(GitHub(args.repo, os.environ.get('GH_TOKEN') or os.environ.get('GITHUB_TOKEN')))
     if args.command == 'status': return remote.status()
     if args.command in ('submit', 'run'):
         env = dict(x.split('=', 1) for x in args.env)
-        job_id = remote.submit(args.cmd, args.name, args.timeout, not args.no_pull, env, args.branch)
+        job_id = remote.submit(args.cmd, args.name, args.timeout, not args.no_pull, env, args.branch, args.input)
         if args.command == 'submit': return 0
         data = remote.logs(job_id, follow=True, timeout=(args.timeout + 30) * 60)
         return 0 if data and data.get('state') == 'succeeded' else 1
@@ -175,6 +190,7 @@ def main(argv=None):
     if args.command == 'files': remote.files(args.id); return 0
     if args.command == 'fetch': remote.fetch(args.id, args.name, args.dest); return 0
     if args.command == 'cancel': remote.cancel(args.id); return 0
+    if args.command == 'upload': remote.upload(args.path, args.name); return 0
 
 
 if __name__ == '__main__':

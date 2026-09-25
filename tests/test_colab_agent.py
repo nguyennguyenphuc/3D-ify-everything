@@ -104,3 +104,20 @@ def test_logs_follow_prints_each_line_once(tmp_path):
     remote.logs(job, follow=True)
     text = remote.out.getvalue()
     assert all(text.count(f'line-{i}') == 1 for i in (1, 2, 3))
+
+
+def test_private_inputs_are_fetched_before_the_job(tmp_path):
+    gh, agent, remote = make(tmp_path)
+    video = tmp_path/'clip.mov'; video.write_bytes(b'v' * 1000)
+    remote.upload(video)
+    assert gh.releases['draft:colab-inputs']['draft'] is True
+    job = remote.submit('wc -c < "$COLAB_INPUT_DIR/clip.mov"', inputs=['clip.mov'])
+    drive(agent, job)
+    assert status(gh, job)['state'] == 'succeeded'
+    assert b'1000' in gh.branches[runs_branch(job)]['log.txt']
+    missing = remote.submit('true', inputs=['nope.mov'])
+    drive(agent, missing)
+    assert status(gh, missing)['state'] == 'failed' and 'nope.mov' in status(gh, missing)['error']
+    bad = remote.submit('true', inputs=['../etc/passwd'])
+    drive(agent, bad)
+    assert status(gh, bad)['state'] == 'rejected'

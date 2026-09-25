@@ -645,7 +645,10 @@ def run(args):
     state, result = {}, {}
     marker = lambda s: layout['stages']/f'{s}.json'
     for stage in STAGES:
-        if stage not in stages: continue
+        if stage not in stages:
+            # Later stages read earlier results, so load finished ones even when not requested.
+            if marker(stage).exists(): state[stage] = json.loads(marker(stage).read_text())
+            continue
         if marker(stage).exists() and stage != 'package':
             state[stage] = json.loads(marker(stage).read_text())
             log(f'Bỏ qua (đã xong ở lần chạy trước)', stage=stage)
@@ -659,6 +662,7 @@ def run(args):
         elif stage == 'vggt':
             if cfg['fake']: state[stage] = {'fake': True}
             else:
+                if 'inputs' not in state: raise SystemExit('Chưa có kết quả stage inputs; chạy --stages inputs trước')
                 sel = state['inputs']['selection'] or {'images': [{'id': str(i)} for i in range(len(state['inputs']['images']))]}
                 state[stage] = reconstruct(cfg, layout, [Path(p) for p in state['inputs']['images']], sel, log)
         elif stage == 'artifixer':
