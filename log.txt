@@ -1,0 +1,27 @@
+$ git fetch --quiet origin feature/courtyard-studio
+$ git reset --hard origin/feature/courtyard-studio
+HEAD is now at ee033a4 Add optional VGGT bundle adjustment (--pose-ba) in a Python 3.11 env
+$ python - <<PY
+import shutil
+from pathlib import Path
+from colab import pipeline as p
+src, dst = Path("/content/work/img6608"), Path("/content/work/ba-test")
+shutil.rmtree(dst, ignore_errors=True); (dst/"run"/"geometry").mkdir(parents=True)
+shutil.copytree(src/"run"/"images", dst/"run"/"images")
+shutil.copy2(src/"run"/"geometry"/"cameras.json", dst/"run"/"geometry"/"cameras.json")
+print("RESULT", p.refine_poses({"run": dst/"run"}, p.Log()))
+PY
+[07:40:33] cmd: $ /usr/bin/python3 -m pip install --quiet uv
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 20.5/20.5 MB 106.0 MB/s eta 0:00:00
+[07:40:37] cmd: $ /usr/bin/python3 -m uv venv --python 3.11 /content/ba-env
+warning: The `--system` flag has no effect, `uv venv` always ignores virtual environments when finding a Python interpreter; did you mean `--no-managed-python`?
+error: Could not acquire lock
+  cause: Could not persist temporary file `/content/drive/MyDrive/courtyard-cache/uv/.tmp28SQrL`
+  cause: Operation not permitted (os error 1)
+[07:40:37] pose-ba: Giữ pose VGGT gốc: Lệnh thất bại (exit 2): ['/usr/bin/python3', '-m', 'uv', 'venv', '--python', '3.11', '/content/ba-env']
+warning: The `--system` flag has no effect, `uv venv` always ignores virtual environments when finding a Python interpreter; did you mean `--no-managed-python`?
+error: Could not acquire lock
+  cause: Could not persist temporary file `/content/drive/MyDrive/courtyard-cache/uv/.tmp28SQrL`
+  cause: Operation not permitted (os error 1)
+
+RESULT {'applied': False, 'reason': "Lệnh thất bại (exit 2): ['/usr/bin/python3', '-m', 'uv', 'venv', '--python', '3.11', '/content/ba-env']\nwarning: The `--system` flag has no effect, `uv venv` always ignores virtual environments when finding a Python interpreter; did you mean `--no-managed-python`?\nerror: Could not acquire lock\n  cause: Could not persist temporary file `/content/drive/MyDrive/courtyard-cache/uv/.tmp28SQrL`\n  cause: Operation not permitted (os error 1)\n"}
