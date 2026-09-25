@@ -1,0 +1,2381 @@
+$ git fetch --quiet origin feature/courtyard-studio
+$ git reset --hard origin/feature/courtyard-studio
+HEAD is now at 537e66b Notebook: POSE_BA parameter, BA summary, photo-mode note
+input IMG_6608.MOV: đã có (/content/colab_inputs/IMG_6608.MOV)
+$ pip install -q papermill && papermill colab/video_tour.ipynb "$COLAB_RELEASE_DIR/video_tour_IMG_6608_hq.ipynb" -k python3 --log-output -p VIDEO "$COLAB_INPUT_DIR/IMG_6608.MOV" -p NAME img6608_hq -p TARGET_FRAMES 64 -p POSE_BA True
+Input Notebook:  colab/video_tour.ipynb
+Output Notebook: /content/colab_jobs/20260925-075006-notebook-img6608-hq-8afe/release/video_tour_IMG_6608_hq.ipynb
+Executing notebook with kernel: python3
+Executing Cell 1---------------------------------------
+Ending Cell 1------------------------------------------
+Executing Cell 2---------------------------------------
+Ending Cell 2------------------------------------------
+Executing Cell 3---------------------------------------
+Ending Cell 3------------------------------------------
+Executing Cell 4---------------------------------------
+537e66b Notebook: POSE_BA parameter, BA summary, photo-mode note
+
+$ /usr/bin/python3 -m colab.pipeline check
+
+[07:50:27] check: {
+
+  "gpu": {
+
+    "name": "NVIDIA A100-SXM4-80GB",
+
+    "memory_mib": 81920,
+
+    "compute_capability": "8.0",
+
+    "driver": "580.82.07"
+
+  },
+
+  "python": "3.13.15",
+
+  "on_colab": true,
+
+  "cache": "/content/drive/MyDrive/courtyard-cache",
+
+  "work": "/content/work",
+
+  "drive_mounted": true,
+
+  "disk_free_gb": 144.1,
+
+  "artifixer_cloned": true,
+
+  "vggt_cloned": true,
+
+  "setup_marker": "/tmp/courtyard-setup-v1.json",
+
+  "torch": "2.11.0+cu128",
+
+  "cuda": "12.8",
+
+  "cuda_available": true
+
+}
+
+$ /usr/bin/python3 -m colab.pipeline setup
+
+[07:50:29] check: {
+
+  "gpu": {
+
+    "name": "NVIDIA A100-SXM4-80GB",
+
+    "memory_mib": 81920,
+
+    "compute_capability": "8.0",
+
+    "driver": "580.82.07"
+
+  },
+
+  "python": "3.13.15",
+
+  "on_colab": true,
+
+  "cache": "/content/drive/MyDrive/courtyard-cache",
+
+  "work": "/content/work",
+
+  "drive_mounted": true,
+
+  "disk_free_gb": 144.1,
+
+  "artifixer_cloned": true,
+
+  "vggt_cloned": true,
+
+  "setup_marker": "/tmp/courtyard-setup-v1.json",
+
+  "torch": "2.11.0+cu128",
+
+  "cuda": "12.8",
+
+  "cuda_available": true
+
+}
+
+[07:50:29] cmd: $ /usr/bin/python3 -m pip install --quiet plyfile py7zr einops safetensors huggingface_hub hf_transfer opencv-python-headless scipy
+
+[07:50:32] cmd: $ git -C /content/3D-ify-everything/vendor/ArtiFixer submodule update --init --recursive --depth 1
+
+[07:50:34] cmd: $ /usr/bin/python3 -m pip uninstall -y flash-attn
+
+WARNING: Skipping flash-attn as it is not installed.
+
+[07:50:35] cmd: $ /usr/bin/python3 -m pip install --quiet -r /content/3D-ify-everything/vendor/ArtiFixer/thirdparty/3DGRUT-ArtiFixer/requirements.txt
+
+[07:50:45] cmd: $ bash /content/3D-ify-everything/vendor/ArtiFixer/thirdparty/3DGRUT-ArtiFixer/scripts/install_slangc.sh /usr/local
+
+slangc 2026.5.2 already installed at /usr/local/bin/slangc
+
+[07:50:45] cmd: $ /usr/bin/python3 -m pip install --quiet -e /content/3D-ify-everything/vendor/ArtiFixer/thirdparty/3DGRUT-ArtiFixer
+
+[07:50:51] cmd: $ /usr/bin/python3 -m pip install --quiet accelerate==1.13.0 diffusers==0.37.1 transformers==5.5.0 ftfy einops scipy wandb tqdm Pillow matplotlib opencv-python-headless pyyaml torchmetrics imageio-ffmpeg h5py av torch-fidelity git+https://github.com/microsoft/MoGe.git
+
+[07:51:01] cmd: $ /usr/bin/python3 -c import torch, diffusers, transformers, h5py, threedgrut; from moge.model.v2 import MoGeModel; import model_training.net.transformer; print("torch", torch.__version__, "cuda", torch.cuda.is_available())
+
+Attention config: sm_80 — auto SDPA (cuDNN), dispatch=auto
+
+torch 2.11.0+cu128 cuda True
+
+[07:51:13] setup: Tải checkpoint ArtiFixer 1.3B và base Wan2.1-T2V-1.3B-Diffusers
+
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+
+
+
+Fetching 31 files:   0%|          | 0/31 [00:00<?, ?it/s]
+
+Fetching 31 files:   3%|▎         | 1/31 [00:00<00:22,  1.36it/s]
+
+Fetching 31 files:  16%|█▌        | 5/31 [00:00<00:03,  7.23it/s]
+
+Fetching 31 files:  23%|██▎       | 7/31 [00:01<00:04,  5.56it/s]
+
+Fetching 31 files:  29%|██▉       | 9/31 [00:01<00:03,  7.17it/s]
+
+Fetching 31 files:  45%|████▌     | 14/31 [00:01<00:01, 12.06it/s]
+
+Fetching 31 files:  52%|█████▏    | 16/31 [00:02<00:01,  8.16it/s]
+
+Fetching 31 files:  68%|██████▊   | 21/31 [00:02<00:00, 13.28it/s]
+
+Fetching 31 files:  77%|███████▋  | 24/31 [00:02<00:00, 15.70it/s]
+
+Fetching 31 files:  87%|████████▋ | 27/31 [00:02<00:00, 11.70it/s]
+
+Fetching 31 files:  97%|█████████▋| 30/31 [00:03<00:00, 11.78it/s]
+
+Fetching 31 files: 100%|██████████| 31/31 [00:03<00:00, 10.02it/s]
+
+[07:51:17] setup: Setup xong
+
+Ending Cell 4------------------------------------------
+Executing Cell 5---------------------------------------
+Ending Cell 5------------------------------------------
+Executing Cell 6---------------------------------------
+$ /usr/bin/python3 -m colab.pipeline run --source video --input /content/colab_inputs/IMG_6608.MOV --name img6608_hq --target-frames 64 --reconstruction-steps 10000 --artifixer3d-steps 30000 --trajectory-frames 81 --pose-ba --stages inputs
+
+[07:51:18] inputs: Bắt đầu
+
+[07:51:19] frames: Trích tối đa 256 ảnh trên toàn bộ 28.1 giây
+
+[07:51:45] selection: Đánh giá ảnh 1/256
+
+[07:51:46] selection: Đánh giá ảnh 51/256
+
+[07:51:47] selection: Đánh giá ảnh 101/256
+
+[07:51:47] selection: Đánh giá ảnh 151/256
+
+[07:51:48] selection: Đánh giá ảnh 201/256
+
+[07:51:49] selection: Đánh giá ảnh 251/256
+
+[07:51:50] selection: Đã chọn 64 ảnh; loại 7 ảnh mờ/gần trùng
+
+[07:51:50] inputs: Xong sau 32 giây
+
+Video 28.1 giây · 256 frame ứng viên · chọn 64 · loại 7 ảnh mờ/gần trùng · liên kết đủ: True
+
+<IPython.core.display.Image object>
+Ending Cell 6------------------------------------------
+Executing Cell 7---------------------------------------
+Ending Cell 7------------------------------------------
+Executing Cell 8---------------------------------------
+$ /usr/bin/python3 -m colab.pipeline run --source video --input /content/colab_inputs/IMG_6608.MOV --name img6608_hq --target-frames 64 --reconstruction-steps 10000 --artifixer3d-steps 30000 --trajectory-frames 81 --pose-ba --stages vggt
+
+[07:51:50] vggt: Bắt đầu
+
+[07:51:51] model: Đọc VGGT (cuda, bfloat16); camera + depth heads
+
+[07:52:25] vggt: VGGT cuda: 64 ảnh trong cùng một inference
+
+[07:52:32] geometry: Xuất depth, cameras và COLMAP binary
+
+[07:52:44] geometry: Geometry đã xuất; model được giải phóng khỏi GPU
+
+[07:52:44] pose-ba: VGGT + bundle adjustment trên 64 ảnh (demo_colmap.py --use_ba)
+
+[07:52:44] cmd: $ /content/ba-env/bin/python /content/3D-ify-everything/colab/vggt_ba.py --weights /content/drive/MyDrive/courtyard-cache/models/vggt/model.pt -- --scene_dir /content/work/img6608_hq/run/ba --use_ba --shared_camera --camera_type PINHOLE
+
+/content/ba-env/lib/python3.11/site-packages/lightglue/lightglue.py:24: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+
+  @torch.cuda.amp.custom_fwd(cast_inputs=torch.float32)
+
+Arguments: {'scene_dir': '/content/work/img6608_hq/run/ba', 'seed': 42, 'use_ba': True, 'max_reproj_error': 8.0, 'shared_camera': True, 'camera_type': 'PINHOLE', 'vis_thresh': 0.2, 'query_frame_num': 8, 'max_query_pts': 4096, 'fine_tracking': True, 'conf_thres_value': 5.0}
+
+Setting seed as: 42
+
+Using device: cuda
+
+Using dtype: torch.bfloat16
+
+Model loaded
+
+Loaded 64 images from /content/work/img6608_hq/run/ba/images
+
+demo_colmap.py:75: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+
+  with torch.cuda.amp.autocast(dtype=dtype):
+
+demo_colmap.py:147: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+
+  with torch.cuda.amp.autocast(dtype=dtype):
+
+Using cache found in /content/drive/MyDrive/courtyard-cache/torch/hub/facebookresearch_dinov2_main
+
+/content/drive/MyDrive/courtyard-cache/torch/hub/facebookresearch_dinov2_main/dinov2/layers/swiglu_ffn.py:51: UserWarning: xFormers is not available (SwiGLU)
+
+  warnings.warn("xFormers is not available (SwiGLU)")
+
+/content/drive/MyDrive/courtyard-cache/torch/hub/facebookresearch_dinov2_main/dinov2/layers/attention.py:33: UserWarning: xFormers is not available (Attention)
+
+  warnings.warn("xFormers is not available (Attention)")
+
+/content/drive/MyDrive/courtyard-cache/torch/hub/facebookresearch_dinov2_main/dinov2/layers/block.py:40: UserWarning: xFormers is not available (Block)
+
+  warnings.warn("xFormers is not available (Block)")
+
+For faster inference, consider disabling fine_tracking
+
+Predicting tracks for query frame 0
+
+Predicting tracks for query frame 33
+
+Predicting tracks for query frame 1
+
+Predicting tracks for query frame 3
+
+Predicting tracks for query frame 2
+
+Predicting tracks for query frame 4
+
+Predicting tracks for query frame 5
+
+Predicting tracks for query frame 6
+
+I20260925 07:54:46.981439 133244988557120 misc.cc:198] 
+
+==============================================================================
+
+Global bundle adjustment
+
+==============================================================================
+
+I20260925 07:54:53.804083 133244988557120 bundle_adjustment.cc:866] 
+
+Bundle adjustment report:
+
+    Residuals : 479432
+
+   Parameters : 43039
+
+   Iterations : 16
+
+         Time : 6.49477 [s]
+
+ Initial cost : 2.36646 [px]
+
+   Final cost : 0.67453 [px]
+
+  Termination : Convergence
+
+
+
+I20260925 07:54:53.804116 133244988557120 timer.cc:91] Elapsed time: 0.114 [minutes]
+
+Saving reconstruction to /content/work/img6608_hq/run/ba/sparse
+
+[07:54:56] pose-ba: Pose BA áp dụng: 64/64 ảnh, xoay tối đa 3.24°, residual 0.0230
+
+[07:54:56] vggt: Xong sau 186 giây
+
+Bundle adjustment: 64/64 ảnh, chỉnh hướng camera trung bình 0.94° (tối đa 3.24°)
+64 camera · 200,000 điểm · suy luận 7.1 giây · VRAM đỉnh 13.9 GB · điểm nhất quán giữa các góc nhìn 94%
+Depth tương đối (đỏ = xa, xanh = gần; đen = bị loại vì confidence thấp):
+
+<IPython.core.display.Image object>
+Ending Cell 8------------------------------------------
+Executing Cell 9---------------------------------------
+Ending Cell 9------------------------------------------
+Executing Cell 10--------------------------------------
+$ /usr/bin/python3 -m colab.pipeline run --source video --input /content/colab_inputs/IMG_6608.MOV --name img6608_hq --target-frames 64 --reconstruction-steps 10000 --artifixer3d-steps 30000 --trajectory-frames 81 --pose-ba --stages artifixer
+
+[07:54:57] artifixer: Bắt đầu
+
+[07:55:10] artifixer: Scene ArtiFixer: 64 ảnh 544x960, 200000 điểm
+
+[07:55:10] caption: Mã hoá caption bằng text encoder Wan (umt5) — bỏ qua Qwen3-VL 30B
+
+[07:55:10] cmd: $ /usr/bin/python3 /content/3D-ify-everything/colab/artifixer_tools.py caption --out /content/work/img6608_hq/artifixer/prep/img6608_hq/captions/img6608_hq/caption.h5 --text A realistic, high-detail indoor space captured by a handheld camera moving slowly through the room, sharp textures, natural lighting, consistent geometry, no motion blur. --model_id Wan-AI/Wan2.1-T2V-1.3B-Diffusers --images /content/work/img6608_hq/artifixer/colmap/images
+
+Flax classes are deprecated and will be removed in Diffusers v1.0.0. We recommend migrating to PyTorch classes or pinning your version of Diffusers.
+
+Flax classes are deprecated and will be removed in Diffusers v1.0.0. We recommend migrating to PyTorch classes or pinning your version of Diffusers.
+
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+
+WARNING:huggingface_hub.utils._http:Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+
+
+
+Fetching 5 files:   0%|          | 0/5 [00:00<?, ?it/s]
+
+Fetching 5 files: 100%|██████████| 5/5 [00:00<00:00, 656.61it/s]
+
+
+
+Loading weights:   0%|          | 0/242 [00:00<?, ?it/s]
+
+Loading weights:   0%|          | 1/242 [00:00<00:24,  9.97it/s]
+
+Loading weights:   3%|▎         | 7/242 [00:03<02:16,  1.72it/s]
+
+Loading weights:   5%|▍         | 12/242 [00:08<02:55,  1.31it/s]
+
+Loading weights:   6%|▌         | 15/242 [00:11<02:58,  1.27it/s]
+
+Loading weights:   7%|▋         | 17/242 [00:17<04:55,  1.31s/it]
+
+Loading weights:   7%|▋         | 18/242 [00:20<05:54,  1.58s/it]
+
+Loading weights:   8%|▊         | 19/242 [00:23<06:31,  1.76s/it]
+
+Loading weights:   9%|▊         | 21/242 [00:24<05:14,  1.42s/it]
+
+Loading weights:  10%|▉         | 24/242 [00:25<03:41,  1.02s/it]
+
+Loading weights:  10%|█         | 25/242 [00:32<06:55,  1.91s/it]
+
+Loading weights:  11%|█         | 27/242 [01:05<23:39,  6.60s/it]
+
+Loading weights:  12%|█▏        | 28/242 [01:08<21:08,  5.93s/it]
+
+Loading weights:  12%|█▏        | 29/242 [01:13<20:25,  5.75s/it]
+
+Loading weights:  15%|█▌        | 37/242 [01:25<09:20,  2.73s/it]
+
+Loading weights:  16%|█▌        | 38/242 [01:28<09:25,  2.77s/it]
+
+Loading weights:  16%|█▌        | 39/242 [01:59<22:17,  6.59s/it]
+
+Loading weights:  19%|█▊        | 45/242 [02:04<11:30,  3.51s/it]
+
+Loading weights:  20%|██        | 49/242 [02:05<07:36,  2.36s/it]
+
+Loading weights:  21%|██        | 50/242 [02:06<07:18,  2.28s/it]
+
+Loading weights:  21%|██        | 51/242 [02:11<08:08,  2.56s/it]
+
+Loading weights:  22%|██▏       | 54/242 [02:15<06:40,  2.13s/it]
+
+Loading weights:  23%|██▎       | 56/242 [02:16<05:28,  1.77s/it]
+
+Loading weights:  24%|██▍       | 58/242 [02:43<14:50,  4.84s/it]
+
+Loading weights:  24%|██▍       | 59/242 [02:45<13:20,  4.37s/it]
+
+Loading weights:  27%|██▋       | 65/242 [03:07<11:57,  4.06s/it]
+
+Loading weights:  28%|██▊       | 67/242 [03:09<09:36,  3.29s/it]
+
+Loading weights:  29%|██▊       | 69/242 [03:11<07:56,  2.76s/it]
+
+Loading weights:  30%|██▉       | 72/242 [03:12<05:28,  1.93s/it]
+
+Loading weights:  30%|███       | 73/242 [03:12<04:45,  1.69s/it]
+
+Loading weights:  32%|███▏      | 77/242 [03:12<02:38,  1.04it/s]
+
+Loading weights:  35%|███▌      | 85/242 [03:12<01:07,  2.31it/s]
+
+Loading weights:  36%|███▋      | 88/242 [03:12<00:54,  2.84it/s]
+
+Loading weights:  40%|████      | 97/242 [03:12<00:27,  5.19it/s]
+
+Loading weights:  43%|████▎     | 105/242 [03:13<00:17,  8.01it/s]
+
+Loading weights:  45%|████▌     | 109/242 [03:13<00:14,  9.18it/s]
+
+Loading weights:  48%|████▊     | 117/242 [03:13<00:09, 12.57it/s]
+
+Loading weights:  52%|█████▏    | 125/242 [03:13<00:06, 17.52it/s]
+
+Loading weights:  54%|█████▎    | 130/242 [03:13<00:05, 18.73it/s]
+
+Loading weights:  57%|█████▋    | 137/242 [03:14<00:05, 20.64it/s]
+
+Loading weights:  60%|█████▉    | 145/242 [03:14<00:03, 26.86it/s]
+
+Loading weights:  62%|██████▏   | 150/242 [03:14<00:03, 25.89it/s]
+
+Loading weights:  65%|██████▍   | 157/242 [03:14<00:03, 26.17it/s]
+
+Loading weights:  68%|██████▊   | 165/242 [03:14<00:02, 31.85it/s]
+
+Loading weights:  70%|██████▉   | 169/242 [03:15<00:02, 28.81it/s]
+
+Loading weights:  73%|███████▎  | 177/242 [03:15<00:02, 29.28it/s]
+
+Loading weights:  76%|███████▋  | 185/242 [03:15<00:01, 34.26it/s]
+
+Loading weights:  78%|███████▊  | 189/242 [03:15<00:01, 29.61it/s]
+
+Loading weights:  81%|████████▏ | 197/242 [03:15<00:01, 30.26it/s]
+
+Loading weights:  85%|████████▍ | 205/242 [03:16<00:01, 36.59it/s]
+
+Loading weights:  87%|████████▋ | 210/242 [03:16<00:00, 32.23it/s]
+
+Loading weights:  90%|████████▉ | 217/242 [03:16<00:00, 30.17it/s]
+
+Loading weights:  93%|█████████▎| 225/242 [03:16<00:00, 36.42it/s]
+
+Loading weights:  95%|█████████▌| 230/242 [03:16<00:00, 32.27it/s]
+
+Loading weights:  98%|█████████▊| 237/242 [03:17<00:00, 29.50it/s]
+
+Loading weights: 100%|██████████| 242/242 [03:19<00:00,  8.07it/s]
+
+Loading weights: 100%|██████████| 242/242 [03:19<00:00,  1.21it/s]
+
+caption embedding (37, 4096) -> /content/work/img6608_hq/artifixer/prep/img6608_hq/captions/img6608_hq/caption.h5
+
+[07:58:55] prepare: ArtiFixer prep: 3DGUT MCMC + render quỹ đạo + MoGe scale
+
+[07:58:55] cmd: $ /usr/bin/python3 /content/3D-ify-everything/colab/artifixer_tools.py prep --colmap_dir /content/work/img6608_hq/artifixer/colmap --output_root /content/work/img6608_hq/artifixer/prep/img6608_hq --trajectory_path /content/work/img6608_hq/artifixer/trajectory.json --reconstruction_steps 10000 --text_encoder_model_id Wan-AI/Wan2.1-T2V-1.3B-Diffusers
+
+Flax classes are deprecated and will be removed in Diffusers v1.0.0. We recommend migrating to PyTorch classes or pinning your version of Diffusers.
+
+Flax classes are deprecated and will be removed in Diffusers v1.0.0. We recommend migrating to PyTorch classes or pinning your version of Diffusers.
+
+──────────────────────────────── Load Datasets ─────────────────────────────────
+
+[07:59:11] [INFO] self.selected_indices_file:                       logger.py:67
+
+           /content/work/img6608_hq/artifixer/prep/img6608_hq/selec             
+
+           ted_indices.json                                                     
+
+Load Dataset (train) ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100% :: 🕒 Elapsed 0:00:00
+
+[07:59:14] [INFO] Split: train, indices: [0, 1, 2, 3, 4, 5, 6, 7,   logger.py:67
+
+           8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,                
+
+           22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35,              
+
+           36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49,              
+
+           50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63]              
+
+Mọi ảnh đều dùng để train: val 3DGUT dùng lại toàn bộ ảnh
+
+Load Dataset (val) ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100% :: 🕒 Elapsed 0:00:00
+
+[07:59:17] [INFO] Split: val, indices: [ 0  1  2  3  4  5  6  7  8  logger.py:67
+
+           9 10 11 12 13 14 15 16 17 18 19 20 21 22 23                          
+
+            24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41               
+
+           42 43 44 45 46 47                                                    
+
+            48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63]                    
+
+/usr/local/lib/python3.13/dist-packages/torch/utils/data/dataloader.py:424: UserWarning: This DataLoader will create 24 worker processes in total. Our suggested max number of worker in current system is 12, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+
+  self.check_worker_number_rationality()
+
+/usr/local/lib/python3.13/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 24 worker processes in total. Our suggested max number of worker in current system is 12, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+
+  self.check_worker_number_rationality()
+
+─────────────────────────────── Initialize Model ───────────────────────────────
+
+ninja: no work to do.
+
+ninja: no work to do.
+
+[07:59:20] [INFO] 🔆 Using MCMC strategy                            logger.py:67
+
+──────────────────────── Setup Model Weights & Training ────────────────────────
+
+[07:59:21] [INFO] 🤸 Initiating new 3dgrut training..               logger.py:67
+
+           [INFO] Found 200000 colmap points                        logger.py:67
+
+[07:59:22] [INFO] 🔆 Using Adam optimizer                           logger.py:67
+
+           [INFO] 🔆 Using Adam optimizer                           logger.py:67
+
+           [INFO] 📊 Training logs & will be saved to:              logger.py:67
+
+           /content/work/img6608_hq/artifixer/prep/img6608_hq/3dgru             
+
+           t_runs/img6608_hq/img6608_hq                                         
+
+──────────────────────────────── Training 3DGUT ────────────────────────────────
+
+[07:59:32] [INFO] Relocated 1326 (0.66%) gaussians                  logger.py:67
+
+           [INFO] Added 10000 (5.00%) gaussians                     logger.py:67
+
+[07:59:33] [INFO] Relocated 539 (0.26%) gaussians                   logger.py:67
+
+           [INFO] Added 10500 (5.00%) gaussians                     logger.py:67
+
+[07:59:35] [INFO] Relocated 551 (0.25%) gaussians                   logger.py:67
+
+           [INFO] Added 11025 (5.00%) gaussians                     logger.py:67
+
+[07:59:37] [INFO] Relocated 651 (0.28%) gaussians                   logger.py:67
+
+           [INFO] Added 11576 (5.00%) gaussians                     logger.py:67
+
+[07:59:38] [INFO] Relocated 615 (0.25%) gaussians                   logger.py:67
+
+           [INFO] Added 12155 (5.00%) gaussians                     logger.py:67
+
+[07:59:40] [INFO] Relocated 680 (0.27%) gaussians                   logger.py:67
+
+           [INFO] Added 12762 (5.00%) gaussians                     logger.py:67
+
+[07:59:42] [INFO] Relocated 667 (0.25%) gaussians                   logger.py:67
+
+           [INFO] Added 13400 (5.00%) gaussians                     logger.py:67
+
+[07:59:44] [INFO] Relocated 668 (0.24%) gaussians                   logger.py:67
+
+           [INFO] Added 14070 (5.00%) gaussians                     logger.py:67
+
+[07:59:46] [INFO] Relocated 691 (0.23%) gaussians                   logger.py:67
+
+           [INFO] Added 14774 (5.00%) gaussians                     logger.py:67
+
+[07:59:48] [INFO] Relocated 740 (0.24%) gaussians                   logger.py:67
+
+           [INFO] Added 15513 (5.00%) gaussians                     logger.py:67
+
+[07:59:50] [INFO] Relocated 821 (0.25%) gaussians                   logger.py:67
+
+           [INFO] Added 16288 (5.00%) gaussians                     logger.py:67
+
+[07:59:52] [INFO] Relocated 825 (0.24%) gaussians                   logger.py:67
+
+           [INFO] Added 17103 (5.00%) gaussians                     logger.py:67
+
+[07:59:54] [INFO] Relocated 879 (0.24%) gaussians                   logger.py:67
+
+           [INFO] Added 17958 (5.00%) gaussians                     logger.py:67
+
+[07:59:56] [INFO] Relocated 971 (0.26%) gaussians                   logger.py:67
+
+           [INFO] Added 18856 (5.00%) gaussians                     logger.py:67
+
+[07:59:58] [INFO] Relocated 952 (0.24%) gaussians                   logger.py:67
+
+           [INFO] Added 19799 (5.00%) gaussians                     logger.py:67
+
+[08:00:00] [INFO] Relocated 1049 (0.25%) gaussians                  logger.py:67
+
+           [INFO] Added 20788 (5.00%) gaussians                     logger.py:67
+
+[08:00:03] [INFO] Relocated 1088 (0.25%) gaussians                  logger.py:67
+
+           [INFO] Added 21828 (5.00%) gaussians                     logger.py:67
+
+[08:00:05] [INFO] Relocated 1238 (0.27%) gaussians                  logger.py:67
+
+           [INFO] Added 22919 (5.00%) gaussians                     logger.py:67
+
+[08:00:07] [INFO] Relocated 1307 (0.27%) gaussians                  logger.py:67
+
+           [INFO] Added 24065 (5.00%) gaussians                     logger.py:67
+
+[08:00:10] [INFO] Relocated 1395 (0.28%) gaussians                  logger.py:67
+
+           [INFO] Added 25268 (5.00%) gaussians                     logger.py:67
+
+[08:00:12] [INFO] Relocated 1483 (0.28%) gaussians                  logger.py:67
+
+           [INFO] Added 26532 (5.00%) gaussians                     logger.py:67
+
+[08:00:15] [INFO] Relocated 1643 (0.29%) gaussians                  logger.py:67
+
+           [INFO] Added 27858 (5.00%) gaussians                     logger.py:67
+
+[08:00:17] [INFO] Relocated 1830 (0.31%) gaussians                  logger.py:67
+
+           [INFO] Added 29251 (5.00%) gaussians                     logger.py:67
+
+[08:00:20] [INFO] Relocated 1961 (0.32%) gaussians                  logger.py:67
+
+           [INFO] Added 30714 (5.00%) gaussians                     logger.py:67
+
+[08:00:23] [INFO] Relocated 2097 (0.33%) gaussians                  logger.py:67
+
+           [INFO] Added 32250 (5.00%) gaussians                     logger.py:67
+
+[08:00:26] [INFO] Relocated 2308 (0.34%) gaussians                  logger.py:67
+
+           [INFO] Added 33862 (5.00%) gaussians                     logger.py:67
+
+[08:00:29] [INFO] Relocated 2287 (0.32%) gaussians                  logger.py:67
+
+           [INFO] Added 35555 (5.00%) gaussians                     logger.py:67
+
+[08:00:32] [INFO] Relocated 2617 (0.35%) gaussians                  logger.py:67
+
+           [INFO] Added 37333 (5.00%) gaussians                     logger.py:67
+
+[08:00:35] [INFO] Relocated 2853 (0.36%) gaussians                  logger.py:67
+
+           [INFO] Added 39200 (5.00%) gaussians                     logger.py:67
+
+[08:00:39] [INFO] Relocated 3023 (0.37%) gaussians                  logger.py:67
+
+           [INFO] Added 41160 (5.00%) gaussians                     logger.py:67
+
+[08:00:42] [INFO] Relocated 3131 (0.36%) gaussians                  logger.py:67
+
+           [INFO] Added 43218 (5.00%) gaussians                     logger.py:67
+
+[08:00:46] [INFO] Relocated 3340 (0.37%) gaussians                  logger.py:67
+
+           [INFO] Added 45379 (5.00%) gaussians                     logger.py:67
+
+[08:00:49] [INFO] Relocated 3547 (0.37%) gaussians                  logger.py:67
+
+           [INFO] Added 47041 (4.94%) gaussians                     logger.py:67
+
+[08:00:53] [INFO] Relocated 3933 (0.39%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:00:57] [INFO] Relocated 2316 (0.23%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:01:01] [INFO] Relocated 2007 (0.20%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:01:05] [INFO] Relocated 1908 (0.19%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:01:09] [INFO] Relocated 1862 (0.19%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:01:13] [INFO] Relocated 1816 (0.18%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:01:17] [INFO] Relocated 1803 (0.18%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:01:20] [INFO] Relocated 1632 (0.16%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:01:24] [INFO] Relocated 1652 (0.17%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:01:28] [INFO] Relocated 1593 (0.16%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:01:32] [INFO] Relocated 1541 (0.15%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:01:36] [INFO] Relocated 1524 (0.15%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:01:40] [INFO] Relocated 1531 (0.15%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:01:44] [INFO] Relocated 1358 (0.14%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:01:47] [INFO] Relocated 1403 (0.14%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:01:51] [INFO] Relocated 1390 (0.14%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:01:55] [INFO] Relocated 1339 (0.13%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:01:59] [INFO] Relocated 1333 (0.13%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:02:03] [INFO] Relocated 1288 (0.13%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:02:07] [INFO] Relocated 1186 (0.12%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:02:11] [INFO] Relocated 1205 (0.12%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:02:14] [INFO] Relocated 1194 (0.12%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:02:18] [INFO] Relocated 1170 (0.12%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:02:22] [INFO] Relocated 1180 (0.12%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:02:26] [INFO] Relocated 1197 (0.12%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:02:30] [INFO] Relocated 1158 (0.12%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:02:34] [INFO] Relocated 1141 (0.11%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:02:37] [INFO] Relocated 1043 (0.10%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:02:41] [INFO] Relocated 1116 (0.11%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:02:45] [INFO] Relocated 1050 (0.10%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:02:49] [INFO] Relocated 1070 (0.11%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:02:53] [INFO] Relocated 985 (0.10%) gaussians                   logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:02:56] [INFO] Relocated 987 (0.10%) gaussians                   logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:03:00] [INFO] Relocated 1003 (0.10%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:03:04] [INFO] Relocated 963 (0.10%) gaussians                   logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:03:08] [INFO] Relocated 992 (0.10%) gaussians                   logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:03:12] [INFO] Relocated 941 (0.09%) gaussians                   logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:03:16] [INFO] Relocated 972 (0.10%) gaussians                   logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:03:19] [INFO] Relocated 972 (0.10%) gaussians                   logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:03:23] [INFO] Relocated 971 (0.10%) gaussians                   logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:03:27] [INFO] Relocated 894 (0.09%) gaussians                   logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:03:31] [INFO] Relocated 942 (0.09%) gaussians                   logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:03:35] [INFO] Relocated 881 (0.09%) gaussians                   logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:03:38] [INFO] Relocated 903 (0.09%) gaussians                   logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:03:42] [INFO] Relocated 929 (0.09%) gaussians                   logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:03:46] [INFO] Relocated 969 (0.10%) gaussians                   logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:03:50] [INFO] Relocated 885 (0.09%) gaussians                   logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:03:54] [INFO] Relocated 897 (0.09%) gaussians                   logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:03:57] [INFO] Relocated 819 (0.08%) gaussians                   logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:04:01] [INFO] Relocated 879 (0.09%) gaussians                   logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:04:05] [INFO] Relocated 874 (0.09%) gaussians                   logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:04:09] [INFO] Relocated 829 (0.08%) gaussians                   logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:04:13] [INFO] Relocated 833 (0.08%) gaussians                   logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:04:16] [INFO] Relocated 817 (0.08%) gaussians                   logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:04:20] [INFO] Relocated 816 (0.08%) gaussians                   logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:04:24] [INFO] Relocated 818 (0.08%) gaussians                   logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:04:28] [INFO] Relocated 813 (0.08%) gaussians                   logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:04:31] [INFO] Relocated 817 (0.08%) gaussians                   logger.py:67
+
+[08:04:32] [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:04:35] [INFO] Relocated 786 (0.08%) gaussians                   logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:04:39] [INFO] Relocated 770 (0.08%) gaussians                   logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:04:43] [INFO] Relocated 855 (0.09%) gaussians                   logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:04:48] [INFO] 💾 Saved checkpoint to:                           logger.py:67
+
+           "/content/work/img6608_hq/artifixer/prep/img6608_hq/3dgr             
+
+           ut_runs/img6608_hq/img6608_hq/ours_10000/ckpt_10000.pt"              
+
+
+
+                 🎊 Training Statistics                 
+
+┏━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━┓
+
+┃ n_steps ┃ n_epochs ┃ training_time ┃ iteration_speed ┃
+
+┡━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━┩
+
+│ 10000   │ 157      │ 325.60 s      │ 30.71 it/s      │
+
+└─────────┴──────────┴───────────────┴─────────────────┘
+
+─────────────────────────────── Exporting Models ───────────────────────────────
+
+           [INFO] 🥳 Training Complete.                             logger.py:67
+
+           [INFO] 🔆 Using Adam optimizer                           logger.py:67
+
+Load Dataset (test) ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100% :: 🕒 Elapsed 0:00:00
+
+           [INFO] Split: test, indices: [0]                         logger.py:67
+
+
+
+Rendered 81 frames in trajectory
+
+Output saved to: /content/work/img6608_hq/artifixer/prep/img6608_hq/recon_results/img6608_hq/reconstruction/img6608_hq/ours_10000/trajectory
+
+Loading COLMAP data...
+
+INFO:data_processing.sparse_recon.metric_alignment:Loading COLMAP data...
+
+Extracting COLMAP depths from 64 images...
+
+INFO:data_processing.sparse_recon.metric_alignment:Extracting COLMAP depths from 64 images...
+
+Found 44 images with valid points
+
+INFO:data_processing.sparse_recon.metric_alignment:Found 44 images with valid points
+
+
+
+Running Monodepth...
+
+INFO:data_processing.sparse_recon.metric_alignment:
+
+Running Monodepth...
+
+Loading MoGe from HuggingFace: Ruicheng/moge-2-vitl-normal
+
+INFO:data_processing.sparse_recon.metric_alignment:Loading MoGe from HuggingFace: Ruicheng/moge-2-vitl-normal
+
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+
+WARNING:huggingface_hub.utils._http:Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+
+
+
+Solving for scale factor (mask-weighted L1)...
+
+INFO:data_processing.sparse_recon.metric_alignment:
+
+Solving for scale factor (mask-weighted L1)...
+
+
+
+Results:
+
+INFO:data_processing.sparse_recon.metric_alignment:
+
+Results:
+
+  Scale factor: 3.980478
+
+INFO:data_processing.sparse_recon.metric_alignment:  Scale factor: 3.980478
+
+  RMSE: 0.5442 (weighted: 0.5442)
+
+INFO:data_processing.sparse_recon.metric_alignment:  RMSE: 0.5442 (weighted: 0.5442)
+
+  Mean error: 0.3167 (weighted: 0.3167)
+
+INFO:data_processing.sparse_recon.metric_alignment:  Mean error: 0.3167 (weighted: 0.3167)
+
+  Median error: 0.1421
+
+INFO:data_processing.sparse_recon.metric_alignment:  Median error: 0.1421
+
+  Correspondences: 200000
+
+INFO:data_processing.sparse_recon.metric_alignment:  Correspondences: 200000
+
+  Mean mask: 1.0000
+
+INFO:data_processing.sparse_recon.metric_alignment:  Mean mask: 1.0000
+
+  Median mask: 1.0000
+
+INFO:data_processing.sparse_recon.metric_alignment:  Median mask: 1.0000
+
+Skipping captioning; found /content/work/img6608_hq/artifixer/prep/img6608_hq/captions/img6608_hq/caption.h5
+
+prepared_scene=img6608_hq
+
+scene_root=/content/work/img6608_hq/artifixer/prep/img6608_hq
+
+selected_views=64
+
+split_path=/content/work/img6608_hq/artifixer/prep/img6608_hq/split.json
+
+eval_dataset_root=/content/work/img6608_hq/artifixer/prep/img6608_hq/3dgrut_input
+
+prompt_dir=/content/work/img6608_hq/artifixer/prep/img6608_hq/captions
+
+recon_results_dir=/content/work/img6608_hq/artifixer/prep/img6608_hq/recon_results
+
+reconstruction_checkpoint=/content/work/img6608_hq/artifixer/prep/img6608_hq/3dgrut_runs/img6608_hq/img6608_hq/ours_10000/ckpt_10000.pt
+
+metric_scale=3.980477616883698
+
+camera_scale=0.03980477616883698
+
+[08:05:24] inference: ArtiFixer 1.3B: sửa artifact trên quỹ đạo mới
+
+[08:05:24] cmd: $ /usr/bin/python3 /content/3D-ify-everything/colab/artifixer_tools.py infer --evalset reconstructed_colmap --checkpoint_pt /content/drive/MyDrive/courtyard-cache/models/artifixer/artifixer-1.3b.pt --model_id Wan-AI/Wan2.1-T2V-1.3B-Diffusers --save_dir /content/work/img6608_hq/artifixer/infer --split_path /content/work/img6608_hq/artifixer/prep/img6608_hq/split.json --render_trajectory trajectory --save_frame_outputs_only
+
+Attention config: sm_80 — auto SDPA (cuDNN), dispatch=auto
+
+Flax classes are deprecated and will be removed in Diffusers v1.0.0. We recommend migrating to PyTorch classes or pinning your version of Diffusers.
+
+Flax classes are deprecated and will be removed in Diffusers v1.0.0. We recommend migrating to PyTorch classes or pinning your version of Diffusers.
+
+Running on 1 GPUs, evalset: reconstructed_colmap
+
+/usr/local/lib/python3.13/dist-packages/huggingface_hub/utils/_validators.py:205: UserWarning: The `local_dir_use_symlinks` argument is deprecated and ignored in `hf_hub_download`. Downloading to a local directory does not use symlinks anymore.
+
+  warnings.warn(
+
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+
+WARNING:huggingface_hub.utils._http:Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+
+Initialized pipeline
+
+Loaded transformer checkpoint
+
+Scene img6608_hq: 64 train, 81 test
+
+Scene img6608_hq: 81 trajectory target frames
+
+Found 1 scenes with reconstruction renders
+
+Generated 1 inference items
+
+Dataset has 1 items
+
+Writing outputs to /content/work/img6608_hq/artifixer/infer/artifixer-1.3b/distilled_views_reconstructed_colmap_auto12_evenly_spaced_sink7_trajectory
+
+
+
+GPU 0:   0%|          | 0/1 [00:00<?, ?it/s]
+
+
+
+  0%|          | 0/3 [00:00<?, ?it/s][A
+
+
+
+ 33%|███▎      | 1/3 [00:04<00:09,  4.65s/it][A
+
+
+
+ 67%|██████▋   | 2/3 [00:09<00:05,  5.04s/it][A
+
+
+
+100%|██████████| 3/3 [00:16<00:00,  5.54s/it][A
+
+100%|██████████| 3/3 [00:16<00:00,  5.37s/it]
+
+
+
+GPU 0: 100%|██████████| 1/1 [01:02<00:00, 62.55s/it]
+
+GPU 0: 100%|██████████| 1/1 [01:02<00:00, 62.55s/it]
+
+Done!
+
+[08:12:16] distill: ArtiFixer3D: distill 30000 bước (anchor thật + frame đã sửa)
+
+[08:12:16] cmd: $ /usr/bin/python3 -m data_processing.run_artifixer3d --scene_root /content/work/img6608_hq/artifixer/prep/img6608_hq --artifixer_frames_dir /content/work/img6608_hq/artifixer/infer/artifixer-1.3b/distilled_views_reconstructed_colmap_auto12_evenly_spaced_sink7_trajectory/img6608_hq/frames/batch_0000/pred --artifixer3d_steps 30000 --phases distill,render
+
+2026-09-25 08:12:25.594802: I tensorflow/core/util/port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+
+2026-09-25 08:12:25.672372: I tensorflow/core/platform/cpu_feature_guard.cc:210] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+
+To enable the following instructions: AVX2 AVX512F AVX512_VNNI FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+
+──────────────────────────────── Load Datasets ─────────────────────────────────
+
+[08:12:29] [INFO] self.selected_indices_file:                       logger.py:67
+
+           /content/work/img6608_hq/artifixer/prep/img6608_hq/artif             
+
+           ixer3d/distillation_input/img6608_hq_selected_indices.js             
+
+           on                                                                   
+
+Load Dataset (train) ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100% :: 🕒 Elapsed 0:00:00
+
+[08:12:32] [INFO] Split: train, indices: [  0   1   2   3   4   5   logger.py:67
+
+           6   7   8   9  10  11  12  13  14  15  16  17                        
+
+             18  19  20  21  22  23  24  25  26  27  28  29  30  31             
+
+           32  33  34  35                                                       
+
+             36  37  38  39  40  41  42  43  44  45  46  47  48  49             
+
+           50  51  52  53                                                       
+
+             54  55  56  57  58  59  60  61  62  63  64  65  66  67             
+
+           68  69  70  71                                                       
+
+             72  73  74  75  76  77  78  79  80  81  82  83  84  85             
+
+           86  87  88  89                                                       
+
+             90  91  92  93  94  95  96  97  98  99 100 101 102 103             
+
+           104 105 106 107                                                      
+
+            108 109 110 111 112 113 114 115 116 117 118 119 120 121             
+
+           122 123 124 125                                                      
+
+            126 127 128 129 130 131 132 133 134 135 136 137 138 139             
+
+           140 141 142 143                                                      
+
+            144]                                                                
+
+           [INFO] Reference image path:                             logger.py:67
+
+           /content/work/img6608_hq/artifixer/prep/img6608_hq/artif             
+
+           ixer3d/distillation_input/img6608_hq/images/frame_00081.             
+
+           png                                                                  
+
+           [INFO] Reference image size for override resizing: (544, logger.py:67
+
+           960)                                                                 
+
+           [INFO] self.selected_indices_file:                       logger.py:67
+
+           /content/work/img6608_hq/artifixer/prep/img6608_hq/artif             
+
+           ixer3d/distillation_input/img6608_hq_selected_indices.js             
+
+           on                                                                   
+
+Load Dataset (val) ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100% :: 🕒 Elapsed 0:00:00
+
+[08:12:36] [INFO] Split: val, indices: [  0   1   2   3   4   5   6 logger.py:67
+
+           7   8   9  10  11  12  13  14  15  16  17                            
+
+             18  19  20  21  22  23  24  25  26  27  28  29  30  31             
+
+           32  33  34  35                                                       
+
+             36  37  38  39  40  41  42  43  44  45  46  47  48  49             
+
+           50  51  52  53                                                       
+
+             54  55  56  57  58  59  60  61  62  63  64  65  66  67             
+
+           68  69  70  71                                                       
+
+             72  73  74  75  76  77  78  79  80  81  82  83  84  85             
+
+           86  87  88  89                                                       
+
+             90  91  92  93  94  95  96  97  98  99 100 101 102 103             
+
+           104 105 106 107                                                      
+
+            108 109 110 111 112 113 114 115 116 117 118 119 120 121             
+
+           122 123 124 125                                                      
+
+            126 127 128 129 130 131 132 133 134 135 136 137 138 139             
+
+           140 141 142 143                                                      
+
+            144]                                                                
+
+           [INFO] Reference image path:                             logger.py:67
+
+           /content/work/img6608_hq/artifixer/prep/img6608_hq/artif             
+
+           ixer3d/distillation_input/img6608_hq/images/frame_00081.             
+
+           png                                                                  
+
+           [INFO] Reference image size for override resizing: (544, logger.py:67
+
+           960)                                                                 
+
+/usr/local/lib/python3.13/dist-packages/torch/utils/data/dataloader.py:424: UserWarning: This DataLoader will create 24 worker processes in total. Our suggested max number of worker in current system is 12, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+
+  self.check_worker_number_rationality()
+
+/usr/local/lib/python3.13/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 24 worker processes in total. Our suggested max number of worker in current system is 12, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+
+  self.check_worker_number_rationality()
+
+─────────────────────────────── Initialize Model ───────────────────────────────
+
+ninja: no work to do.
+
+ninja: no work to do.
+
+[08:12:39] [INFO] 🔆 Using MCMC strategy                            logger.py:67
+
+──────────────────────── Setup Model Weights & Training ────────────────────────
+
+[08:12:40] [INFO] 🤸 Initiating new 3dgrut training..               logger.py:67
+
+           [INFO] Found 200000 colmap points                        logger.py:67
+
+[08:12:41] [INFO] 🔆 Using Adam optimizer                           logger.py:67
+
+           [INFO] 🔆 Using Adam optimizer                           logger.py:67
+
+           [INFO] 📊 Training logs & will be saved to:              logger.py:67
+
+           /content/work/img6608_hq/artifixer/prep/img6608_hq/artif             
+
+           ixer3d/runs/img6608_hq/img6608_hq                                    
+
+──────────────────────────────── Training 3DGUT ────────────────────────────────
+
+[08:13:01] [INFO] Relocated 619 (0.31%) gaussians                   logger.py:67
+
+           [INFO] Added 10000 (5.00%) gaussians                     logger.py:67
+
+[08:13:05] [INFO] Relocated 441 (0.21%) gaussians                   logger.py:67
+
+           [INFO] Added 10500 (5.00%) gaussians                     logger.py:67
+
+[08:13:08] [INFO] Relocated 513 (0.23%) gaussians                   logger.py:67
+
+           [INFO] Added 11025 (5.00%) gaussians                     logger.py:67
+
+[08:13:12] [INFO] Relocated 612 (0.26%) gaussians                   logger.py:67
+
+           [INFO] Added 11576 (5.00%) gaussians                     logger.py:67
+
+[08:13:15] [INFO] Relocated 661 (0.27%) gaussians                   logger.py:67
+
+           [INFO] Added 12155 (5.00%) gaussians                     logger.py:67
+
+[08:13:19] [INFO] Relocated 711 (0.28%) gaussians                   logger.py:67
+
+           [INFO] Added 12762 (5.00%) gaussians                     logger.py:67
+
+[08:13:23] [INFO] Relocated 873 (0.33%) gaussians                   logger.py:67
+
+           [INFO] Added 13400 (5.00%) gaussians                     logger.py:67
+
+[08:13:27] [INFO] Relocated 861 (0.31%) gaussians                   logger.py:67
+
+           [INFO] Added 14070 (5.00%) gaussians                     logger.py:67
+
+[08:13:31] [INFO] Relocated 955 (0.32%) gaussians                   logger.py:67
+
+           [INFO] Added 14774 (5.00%) gaussians                     logger.py:67
+
+[08:13:35] [INFO] Relocated 1000 (0.32%) gaussians                  logger.py:67
+
+           [INFO] Added 15513 (5.00%) gaussians                     logger.py:67
+
+[08:13:39] [INFO] Relocated 1133 (0.35%) gaussians                  logger.py:67
+
+           [INFO] Added 16288 (5.00%) gaussians                     logger.py:67
+
+[08:13:43] [INFO] Relocated 1229 (0.36%) gaussians                  logger.py:67
+
+           [INFO] Added 17103 (5.00%) gaussians                     logger.py:67
+
+[08:13:48] [INFO] Relocated 1207 (0.34%) gaussians                  logger.py:67
+
+           [INFO] Added 17958 (5.00%) gaussians                     logger.py:67
+
+[08:13:52] [INFO] Relocated 1390 (0.37%) gaussians                  logger.py:67
+
+           [INFO] Added 18856 (5.00%) gaussians                     logger.py:67
+
+[08:13:57] [INFO] Relocated 1355 (0.34%) gaussians                  logger.py:67
+
+           [INFO] Added 19799 (5.00%) gaussians                     logger.py:67
+
+[08:14:02] [INFO] Relocated 1497 (0.36%) gaussians                  logger.py:67
+
+           [INFO] Added 20788 (5.00%) gaussians                     logger.py:67
+
+[08:14:07] [INFO] Relocated 1688 (0.39%) gaussians                  logger.py:67
+
+           [INFO] Added 21828 (5.00%) gaussians                     logger.py:67
+
+[08:14:12] [INFO] Relocated 1868 (0.41%) gaussians                  logger.py:67
+
+           [INFO] Added 22919 (5.00%) gaussians                     logger.py:67
+
+[08:14:17] [INFO] Relocated 1923 (0.40%) gaussians                  logger.py:67
+
+           [INFO] Added 24065 (5.00%) gaussians                     logger.py:67
+
+[08:14:22] [INFO] Relocated 2255 (0.45%) gaussians                  logger.py:67
+
+           [INFO] Added 25268 (5.00%) gaussians                     logger.py:67
+
+[08:14:27] [INFO] Relocated 2417 (0.46%) gaussians                  logger.py:67
+
+           [INFO] Added 26532 (5.00%) gaussians                     logger.py:67
+
+[08:14:33] [INFO] Relocated 2533 (0.45%) gaussians                  logger.py:67
+
+           [INFO] Added 27858 (5.00%) gaussians                     logger.py:67
+
+[08:14:38] [INFO] Relocated 2806 (0.48%) gaussians                  logger.py:67
+
+           [INFO] Added 29251 (5.00%) gaussians                     logger.py:67
+
+[08:14:44] [INFO] Relocated 3203 (0.52%) gaussians                  logger.py:67
+
+           [INFO] Added 30714 (5.00%) gaussians                     logger.py:67
+
+[08:14:50] [INFO] Relocated 3330 (0.52%) gaussians                  logger.py:67
+
+           [INFO] Added 32250 (5.00%) gaussians                     logger.py:67
+
+[08:14:56] [INFO] Relocated 3653 (0.54%) gaussians                  logger.py:67
+
+           [INFO] Added 33862 (5.00%) gaussians                     logger.py:67
+
+[08:15:02] [INFO] Relocated 4071 (0.57%) gaussians                  logger.py:67
+
+           [INFO] Added 35555 (5.00%) gaussians                     logger.py:67
+
+[08:15:08] [INFO] Relocated 4386 (0.59%) gaussians                  logger.py:67
+
+           [INFO] Added 37333 (5.00%) gaussians                     logger.py:67
+
+[08:15:15] [INFO] Relocated 4572 (0.58%) gaussians                  logger.py:67
+
+           [INFO] Added 39200 (5.00%) gaussians                     logger.py:67
+
+[08:15:22] [INFO] Relocated 4973 (0.60%) gaussians                  logger.py:67
+
+           [INFO] Added 41160 (5.00%) gaussians                     logger.py:67
+
+[08:15:28] [INFO] Relocated 5205 (0.60%) gaussians                  logger.py:67
+
+           [INFO] Added 43218 (5.00%) gaussians                     logger.py:67
+
+[08:15:36] [INFO] Relocated 5850 (0.64%) gaussians                  logger.py:67
+
+           [INFO] Added 45379 (5.00%) gaussians                     logger.py:67
+
+[08:15:43] [INFO] Relocated 6410 (0.67%) gaussians                  logger.py:67
+
+           [INFO] Added 47041 (4.94%) gaussians                     logger.py:67
+
+[08:15:51] [INFO] Relocated 6348 (0.63%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:15:58] [INFO] Relocated 4305 (0.43%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:16:05] [INFO] Relocated 3984 (0.40%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:16:12] [INFO] Relocated 3622 (0.36%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:16:20] [INFO] Relocated 3438 (0.34%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:16:28] [INFO] Relocated 3516 (0.35%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:16:35] [INFO] Relocated 3296 (0.33%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:16:42] [INFO] Relocated 3278 (0.33%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:16:51] [INFO] Relocated 3152 (0.32%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:16:58] [INFO] Relocated 3029 (0.30%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:17:06] [INFO] Relocated 2882 (0.29%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:17:14] [INFO] Relocated 2796 (0.28%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:17:21] [INFO] Relocated 2966 (0.30%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:17:29] [INFO] Relocated 2891 (0.29%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:17:37] [INFO] Relocated 2714 (0.27%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:17:45] [INFO] Relocated 2751 (0.28%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:17:53] [INFO] Relocated 2680 (0.27%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:18:01] [INFO] Relocated 2721 (0.27%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:18:10] [INFO] Relocated 2634 (0.26%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:18:18] [INFO] Relocated 2598 (0.26%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:18:26] [INFO] Relocated 2588 (0.26%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:18:34] [INFO] Relocated 2584 (0.26%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:18:42] [INFO] Relocated 2451 (0.25%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:18:51] [INFO] Relocated 2510 (0.25%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:18:59] [INFO] Relocated 2362 (0.24%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:19:08] [INFO] Relocated 2474 (0.25%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:19:16] [INFO] Relocated 2310 (0.23%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:19:25] [INFO] Relocated 2412 (0.24%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:19:33] [INFO] Relocated 2331 (0.23%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:19:42] [INFO] Relocated 2264 (0.23%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:19:51] [INFO] Relocated 2289 (0.23%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:19:59] [INFO] Relocated 2204 (0.22%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:20:08] [INFO] Relocated 2289 (0.23%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:20:17] [INFO] Relocated 2268 (0.23%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:20:26] [INFO] Relocated 2103 (0.21%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:20:35] [INFO] Relocated 2128 (0.21%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:20:44] [INFO] Relocated 2000 (0.20%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:20:53] [INFO] Relocated 2090 (0.21%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:21:02] [INFO] Relocated 2212 (0.22%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:21:12] [INFO] Relocated 2009 (0.20%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:21:21] [INFO] Relocated 2087 (0.21%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:21:30] [INFO] Relocated 2088 (0.21%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:21:39] [INFO] Relocated 2027 (0.20%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:21:49] [INFO] Relocated 2000 (0.20%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:21:58] [INFO] Relocated 1986 (0.20%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:22:08] [INFO] Relocated 2066 (0.21%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:22:18] [INFO] Relocated 1947 (0.19%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:22:27] [INFO] Relocated 1918 (0.19%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:22:36] [INFO] Relocated 2038 (0.20%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:22:46] [INFO] Relocated 1910 (0.19%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:22:56] [INFO] Relocated 1948 (0.19%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:23:06] [INFO] Relocated 1958 (0.20%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:23:15] [INFO] Relocated 1881 (0.19%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:23:26] [INFO] Relocated 1877 (0.19%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:23:35] [INFO] Relocated 1821 (0.18%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:23:45] [INFO] Relocated 1802 (0.18%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:23:55] [INFO] Relocated 1941 (0.19%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:24:05] [INFO] Relocated 1909 (0.19%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:24:15] [INFO] Relocated 1739 (0.17%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:24:25] [INFO] Relocated 1857 (0.19%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:24:35] [INFO] Relocated 1805 (0.18%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:24:46] [INFO] Relocated 1714 (0.17%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:24:56] [INFO] Relocated 1846 (0.18%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:25:07] [INFO] Relocated 1755 (0.18%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:25:17] [INFO] Relocated 1733 (0.17%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:25:28] [INFO] Relocated 1762 (0.18%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:25:38] [INFO] Relocated 1812 (0.18%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:25:48] [INFO] Relocated 1665 (0.17%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:25:59] [INFO] Relocated 1635 (0.16%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:26:10] [INFO] Relocated 1806 (0.18%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:26:21] [INFO] Relocated 1637 (0.16%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:26:32] [INFO] Relocated 1653 (0.17%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:26:42] [INFO] Relocated 1623 (0.16%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:26:53] [INFO] Relocated 1621 (0.16%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:27:05] [INFO] Relocated 1753 (0.18%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:27:16] [INFO] Relocated 1584 (0.16%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:27:27] [INFO] Relocated 1672 (0.17%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:27:38] [INFO] Relocated 1586 (0.16%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:27:49] [INFO] Relocated 1571 (0.16%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:28:01] [INFO] Relocated 1629 (0.16%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:28:11] [INFO] Relocated 1524 (0.15%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:28:23] [INFO] Relocated 1565 (0.16%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:28:34] [INFO] Relocated 1669 (0.17%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:28:45] [INFO] Relocated 1579 (0.16%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:28:57] [INFO] Relocated 1655 (0.17%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:29:08] [INFO] Relocated 1621 (0.16%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:29:20] [INFO] Relocated 1494 (0.15%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:29:32] [INFO] Relocated 1502 (0.15%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:29:43] [INFO] Relocated 1470 (0.15%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:29:55] [INFO] Relocated 1504 (0.15%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:30:07] [INFO] Relocated 1577 (0.16%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:30:18] [INFO] Relocated 1444 (0.14%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:30:31] [INFO] Relocated 1526 (0.15%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:30:42] [INFO] Relocated 1453 (0.15%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:30:54] [INFO] Relocated 1482 (0.15%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:31:06] [INFO] Relocated 1463 (0.15%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:31:18] [INFO] Relocated 1516 (0.15%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:31:30] [INFO] Relocated 1456 (0.15%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:31:42] [INFO] Relocated 1513 (0.15%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:31:55] [INFO] Relocated 1553 (0.16%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:32:07] [INFO] Relocated 1506 (0.15%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:32:19] [INFO] Relocated 1407 (0.14%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:32:32] [INFO] Relocated 1441 (0.14%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:32:44] [INFO] Relocated 1436 (0.14%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:32:57] [INFO] Relocated 1528 (0.15%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:33:09] [INFO] Relocated 1302 (0.13%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:33:22] [INFO] Relocated 1457 (0.15%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:33:35] [INFO] Relocated 1483 (0.15%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:33:47] [INFO] Relocated 1356 (0.14%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:34:00] [INFO] Relocated 1457 (0.15%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:34:12] [INFO] Relocated 1370 (0.14%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:34:25] [INFO] Relocated 1336 (0.13%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:34:39] [INFO] Relocated 1406 (0.14%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:34:52] [INFO] Relocated 1288 (0.13%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:35:07] [INFO] Relocated 1533 (0.15%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:35:18] [INFO] Relocated 1318 (0.13%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:35:31] [INFO] Relocated 1404 (0.14%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:35:45] [INFO] Relocated 1425 (0.14%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:35:58] [INFO] Relocated 1439 (0.14%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:36:11] [INFO] Relocated 1370 (0.14%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:36:24] [INFO] Relocated 1288 (0.13%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:36:37] [INFO] Relocated 1274 (0.13%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:36:51] [INFO] Relocated 1347 (0.13%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:37:05] [INFO] Relocated 1311 (0.13%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:37:18] [INFO] Relocated 1289 (0.13%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:37:32] [INFO] Relocated 1343 (0.13%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:37:45] [INFO] Relocated 1216 (0.12%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:37:59] [INFO] Relocated 1373 (0.14%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:38:13] [INFO] Relocated 1318 (0.13%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:38:27] [INFO] Relocated 1303 (0.13%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:38:41] [INFO] Relocated 1344 (0.13%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:38:54] [INFO] Relocated 1180 (0.12%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:39:08] [INFO] Relocated 1381 (0.14%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:39:23] [INFO] Relocated 1266 (0.13%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:39:35] [INFO] Relocated 1178 (0.12%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:39:50] [INFO] Relocated 1338 (0.13%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:40:05] [INFO] Relocated 1379 (0.14%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:40:19] [INFO] Relocated 1168 (0.12%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:40:33] [INFO] Relocated 1207 (0.12%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:40:48] [INFO] Relocated 1238 (0.12%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:41:02] [INFO] Relocated 1230 (0.12%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:41:17] [INFO] Relocated 1241 (0.12%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:41:32] [INFO] Relocated 1192 (0.12%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:41:48] [INFO] Relocated 1285 (0.13%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:42:01] [INFO] Relocated 1137 (0.11%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:42:16] [INFO] Relocated 1124 (0.11%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:42:31] [INFO] Relocated 1126 (0.11%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:42:46] [INFO] Relocated 1194 (0.12%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:43:01] [INFO] Relocated 1196 (0.12%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:43:16] [INFO] Relocated 1068 (0.11%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:43:32] [INFO] Relocated 1220 (0.12%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:43:46] [INFO] Relocated 1134 (0.11%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:44:01] [INFO] Relocated 1144 (0.11%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:44:16] [INFO] Relocated 1148 (0.11%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:44:32] [INFO] Relocated 1123 (0.11%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:44:47] [INFO] Relocated 1137 (0.11%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:45:02] [INFO] Relocated 1051 (0.11%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:45:18] [INFO] Relocated 1120 (0.11%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:45:34] [INFO] Relocated 1185 (0.12%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:45:49] [INFO] Relocated 1122 (0.11%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:46:04] [INFO] Relocated 1104 (0.11%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:46:19] [INFO] Relocated 1057 (0.11%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:46:36] [INFO] Relocated 1009 (0.10%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:46:51] [INFO] Relocated 1063 (0.11%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:47:07] [INFO] Relocated 1099 (0.11%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:47:23] [INFO] Relocated 1033 (0.10%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:47:39] [INFO] Relocated 1123 (0.11%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:47:55] [INFO] Relocated 1046 (0.10%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:48:11] [INFO] Relocated 954 (0.10%) gaussians                   logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:48:26] [INFO] Relocated 968 (0.10%) gaussians                   logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:48:43] [INFO] Relocated 1074 (0.11%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:48:59] [INFO] Relocated 1016 (0.10%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:49:15] [INFO] Relocated 1028 (0.10%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:49:32] [INFO] Relocated 955 (0.10%) gaussians                   logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:49:48] [INFO] Relocated 982 (0.10%) gaussians                   logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:50:04] [INFO] Relocated 1006 (0.10%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:50:21] [INFO] Relocated 1038 (0.10%) gaussians                  logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:50:37] [INFO] Relocated 996 (0.10%) gaussians                   logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:50:54] [INFO] Relocated 971 (0.10%) gaussians                   logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:51:10] [INFO] Relocated 971 (0.10%) gaussians                   logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:51:28] [INFO] Relocated 915 (0.09%) gaussians                   logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:51:44] [INFO] Relocated 994 (0.10%) gaussians                   logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:52:00] [INFO] Relocated 894 (0.09%) gaussians                   logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:52:18] [INFO] Relocated 996 (0.10%) gaussians                   logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:52:35] [INFO] Relocated 929 (0.09%) gaussians                   logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:52:53] [INFO] Relocated 908 (0.09%) gaussians                   logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:53:09] [INFO] Relocated 863 (0.09%) gaussians                   logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:53:27] [INFO] Relocated 936 (0.09%) gaussians                   logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:53:44] [INFO] Relocated 896 (0.09%) gaussians                   logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:54:01] [INFO] Relocated 817 (0.08%) gaussians                   logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:54:17] [INFO] Relocated 804 (0.08%) gaussians                   logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:54:35] [INFO] Relocated 924 (0.09%) gaussians                   logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:54:53] [INFO] Relocated 848 (0.08%) gaussians                   logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:55:11] [INFO] Relocated 901 (0.09%) gaussians                   logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:55:28] [INFO] Relocated 894 (0.09%) gaussians                   logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:55:46] [INFO] Relocated 876 (0.09%) gaussians                   logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:56:04] [INFO] Relocated 884 (0.09%) gaussians                   logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:56:22] [INFO] Relocated 829 (0.08%) gaussians                   logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:56:39] [INFO] Relocated 819 (0.08%) gaussians                   logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:56:57] [INFO] Relocated 780 (0.08%) gaussians                   logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:57:14] [INFO] Relocated 789 (0.08%) gaussians                   logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:57:32] [INFO] Relocated 799 (0.08%) gaussians                   logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:57:50] [INFO] Relocated 805 (0.08%) gaussians                   logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:58:09] [INFO] Relocated 772 (0.08%) gaussians                   logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:58:28] [INFO] Relocated 839 (0.08%) gaussians                   logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:58:45] [INFO] Relocated 699 (0.07%) gaussians                   logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:59:03] [INFO] Relocated 785 (0.08%) gaussians                   logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:59:21] [INFO] Relocated 832 (0.08%) gaussians                   logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:59:38] [INFO] Relocated 713 (0.07%) gaussians                   logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[08:59:57] [INFO] Relocated 765 (0.08%) gaussians                   logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[09:00:16] [INFO] Relocated 699 (0.07%) gaussians                   logger.py:67
+
+           [INFO] Added 0 (0.00%) gaussians                         logger.py:67
+
+[09:16:52] [INFO] 💾 Saved checkpoint to:                           logger.py:67
+
+           "/content/work/img6608_hq/artifixer/prep/img6608_hq/arti             
+
+           fixer3d/runs/img6608_hq/img6608_hq/ours_30000/ckpt_30000             
+
+           .pt"                                                                 
+
+
+
+                 🎊 Training Statistics                 
+
+┏━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━┓
+
+┃ n_steps ┃ n_epochs ┃ training_time ┃ iteration_speed ┃
+
+┡━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━┩
+
+│ 30000   │ 207      │ 3851.09 s     │ 7.79 it/s       │
+
+└─────────┴──────────┴───────────────┴─────────────────┘
+
+─────────────────────────────── Exporting Models ───────────────────────────────
+
+           [INFO] 🥳 Training Complete.                             logger.py:67
+
+[09:16:53] [INFO] 🔆 Using Adam optimizer                           logger.py:67
+
+Load Dataset (test) ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100% :: 🕒 Elapsed 0:00:00
+
+[09:16:57] [INFO] Split: test, indices: [  0   8  16  24  32  40    logger.py:67
+
+           48  56  64  72  80  88  96 104 112 120 128 136                       
+
+            144]                                                                
+
+
+
+Rendered 145 frames in trajectory
+
+Output saved to: /content/work/img6608_hq/artifixer/prep/img6608_hq/artifixer3d/recon_results/img6608_hq/artifixer3d/img6608_hq/ours_30000
+
+artifixer3d_checkpoint=/content/work/img6608_hq/artifixer/prep/img6608_hq/artifixer3d/runs/img6608_hq/img6608_hq/ours_30000/ckpt_30000.pt
+
+artifixer3d_render_dir=/content/work/img6608_hq/artifixer/prep/img6608_hq/artifixer3d/recon_results/img6608_hq/artifixer3d/img6608_hq/ours_30000
+
+[09:17:39] cmd: $ /usr/bin/python3 /content/3D-ify-everything/colab/artifixer_tools.py export --checkpoint /content/work/img6608_hq/artifixer/prep/img6608_hq/3dgrut_runs/img6608_hq/img6608_hq/ours_10000/ckpt_10000.pt --out /content/work/img6608_hq/artifixer/baseline_3dgrut.ply
+
+2026-09-25 09:17:42,838 - numexpr.utils - INFO - NumExpr defaulting to 12 threads.
+
+2026-09-25 09:17:43.657243: I tensorflow/core/util/port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+
+2026-09-25 09:17:43.734092: I tensorflow/core/platform/cpu_feature_guard.cc:210] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+
+To enable the following instructions: AVX2 AVX512F AVX512_VNNI FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+
+ninja: no work to do.
+
+[09:17:48] [INFO] exporting ply file to                             logger.py:67
+
+           /content/work/img6608_hq/artifixer/baseline_3dgrut.ply..             
+
+           .                                                                    
+
+PLY -> /content/work/img6608_hq/artifixer/baseline_3dgrut.ply (1000000 Gaussian)
+
+[09:18:01] cmd: $ /usr/bin/python3 /content/3D-ify-everything/colab/artifixer_tools.py export --checkpoint /content/work/img6608_hq/artifixer/prep/img6608_hq/artifixer3d/runs/img6608_hq/img6608_hq/ours_30000/ckpt_30000.pt --out /content/work/img6608_hq/artifixer/artifixer3d_3dgrut.ply
+
+2026-09-25 09:18:04,433 - numexpr.utils - INFO - NumExpr defaulting to 12 threads.
+
+2026-09-25 09:18:05.221874: I tensorflow/core/util/port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+
+2026-09-25 09:18:05.297077: I tensorflow/core/platform/cpu_feature_guard.cc:210] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+
+To enable the following instructions: AVX2 AVX512F AVX512_VNNI FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+
+ninja: no work to do.
+
+[09:18:10] [INFO] exporting ply file to                             logger.py:67
+
+           /content/work/img6608_hq/artifixer/artifixer3d_3dgrut.pl             
+
+           y...                                                                 
+
+PLY -> /content/work/img6608_hq/artifixer/artifixer3d_3dgrut.ply (1000000 Gaussian)
+
+[09:18:22] artifixer: Xong sau 5005 giây
+
+Hàng trên: render 3DGUT gốc · hàng dưới: ArtiFixer đã sửa
+
+<IPython.core.display.Image object>
+Ending Cell 10-----------------------------------------
+Executing Cell 11--------------------------------------
+Ending Cell 11-----------------------------------------
+Executing Cell 12--------------------------------------
+$ /usr/bin/python3 -m colab.pipeline run --source video --input /content/colab_inputs/IMG_6608.MOV --name img6608_hq --target-frames 64 --reconstruction-steps 10000 --artifixer3d-steps 30000 --trajectory-frames 81 --pose-ba --stages package
+
+[09:18:23] package: Bắt đầu
+
+[09:20:04] tidy: splat.ply: 1,000,000 → 776,498 Gaussian
+
+[09:21:37] tidy: baseline.ply: 1,000,000 → 804,538 Gaussian
+
+[09:21:59] package: Đã chuẩn bị file cho GitHub release
+
+[09:22:01] package: Đã lưu /content/drive/MyDrive/courtyard-results/img6608_hq-20260925-092159.zip
+
+[09:22:01] package: Kết quả: /content/work/img6608_hq/enhance · /content/work/img6608_hq/results.zip (435.8 MiB)
+
+[09:22:01] package: Xong sau 218 giây
+
+splat.ply: 1,000,000 → 776,498 Gaussian (ngoài vùng 5,477, trong suốt 196,399, quá lớn 204, cô lập 3,253)
+baseline.ply: 1,000,000 → 804,538 Gaussian (ngoài vùng 4,208, trong suốt 166,143, quá lớn 88, cô lập 3,031)
+Scale metric: Scale factor: 3.980477616883698
+
+<IPython.core.display.Image object>
+baseline.ply
+cameras.json
+compare.jpg
+fixed_frames/00000.png
+fixed_frames/00001.png
+fixed_frames/00002.png
+fixed_frames/00003.png
+fixed_frames/00004.png
+fixed_frames/00005.png
+fixed_frames/00006.png
+fixed_frames/00007.png
+fixed_frames/00008.png
+fixed_frames/00009.png
+fixed_frames/00010.png
+fixed_frames/00011.png
+fixed_frames/00012.png
+fixed_frames/00013.png
+fixed_frames/00014.png
+fixed_frames/00015.png
+fixed_frames/00016.png
+
+Ending Cell 12-----------------------------------------
+Executing Cell 13--------------------------------------
+[31mWarning: This function may stop working due to changes in browser security.
+Try `serve_kernel_port_as_iframe` instead. [0m
+
+<IPython.core.display.Javascript object>
+Ending Cell 13-----------------------------------------
+Executing Cell 14--------------------------------------
+/content/work/img6608_hq/results.zip · 436 MiB (đã tự sao lưu vào Drive/courtyard-results nếu Drive được mount)
+
+<IPython.core.display.Javascript object>
+<IPython.core.display.Javascript object>
+Ending Cell 14-----------------------------------------

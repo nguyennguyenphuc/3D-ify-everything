@@ -1,0 +1,45 @@
+{
+  "id": "20260925-075006-notebook-img6608-hq-8afe",
+  "state": "succeeded",
+  "cmd": "pip install -q papermill && papermill colab/video_tour.ipynb \"$COLAB_RELEASE_DIR/video_tour_IMG_6608_hq.ipynb\" -k python3 --log-output -p VIDEO \"$COLAB_INPUT_DIR/IMG_6608.MOV\" -p NAME img6608_hq -p TARGET_FRAMES 64 -p POSE_BA True",
+  "commit": "537e66b6949c6708dd1e44a9448792eedca68ad3",
+  "started": "2026-09-25T07:50:18Z",
+  "finished": "2026-09-25T09:22:12Z",
+  "elapsed_seconds": 5586,
+  "exit_code": 0,
+  "error": null,
+  "gpu": {
+    "name": "NVIDIA A100-SXM4-80GB",
+    "memory_total_mib": 81920,
+    "memory_used_mib": 0,
+    "utilization": 0
+  },
+  "log_total_lines": 2381,
+  "tail_start": 2301,
+  "branch": "colab-runs/20260925-075006-notebook-img6608-hq-8afe",
+  "published_commit": "135db1e8ad97f9721b4337c7869261b6a9fb758e",
+  "release": "colab-run-20260925-075006-notebook-img6608-hq-8afe",
+  "assets": [
+    {
+      "name": "baseline.ply",
+      "id": 587998761,
+      "size": 189872445
+    },
+    {
+      "name": "results.zip",
+      "id": 587999211,
+      "size": 456981894
+    },
+    {
+      "name": "splat.ply",
+      "id": 588000214,
+      "size": 183255005
+    },
+    {
+      "name": "video_tour_IMG_6608_hq.ipynb",
+      "id": 588000561,
+      "size": 2852652
+    }
+  ],
+  "updated": "2026-09-25T09:23:23Z"
+}
