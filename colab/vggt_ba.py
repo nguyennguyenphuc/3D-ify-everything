@@ -16,7 +16,13 @@ def main():
     args, rest = p.parse_known_args()
     rest = rest[1:] if rest[:1] == ['--'] else rest
     import torch
-    torch.hub.load_state_dict_from_url = lambda *a, **kw: torch.load(args.weights, map_location='cpu', weights_only=True)
+    download = torch.hub.load_state_dict_from_url
+
+    def load(url, *a, **kw):
+        # Only VGGT-1B comes from the cache; the VGGSfM tracker and keypoint weights still download normally.
+        if 'VGGT-1B' in url: return torch.load(args.weights, map_location='cpu', weights_only=True)
+        return download(url, *a, **kw)
+    torch.hub.load_state_dict_from_url = load
     sys.argv = ['demo_colmap.py', *rest]
     runpy.run_path('demo_colmap.py', run_name='__main__')
 
