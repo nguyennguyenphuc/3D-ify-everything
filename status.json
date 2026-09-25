@@ -1,0 +1,24 @@
+{
+  "id": "20260925-071210-check-img6608-d77a",
+  "state": "succeeded",
+  "cmd": "ls /content/work/img6608/ /content/work/img6608/run/geometry | head -20; ls /content/work/img6608/project/originals | wc -l; python -c \"import pycolmap; print(pycolmap.__version__)\" 2>&1 | tail -1",
+  "commit": "256bdaf9e315131bedd491888b98802d743ea31b",
+  "started": "2026-09-25T07:12:17Z",
+  "finished": "2026-09-25T07:12:18Z",
+  "elapsed_seconds": 1,
+  "exit_code": 0,
+  "error": null,
+  "gpu": {
+    "name": "NVIDIA A100-SXM4-80GB",
+    "memory_total_mib": 81920,
+    "memory_used_mib": 0,
+    "utilization": 0
+  },
+  "log_total_lines": 23,
+  "tail_start": 0,
+  "branch": "colab-runs/20260925-071210-check-img6608-d77a",
+  "published_commit": null,
+  "release": null,
+  "assets": [],
+  "updated": "2026-09-25T07:12:18Z"
+}

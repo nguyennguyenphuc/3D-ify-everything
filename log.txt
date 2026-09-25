@@ -1,0 +1,23 @@
+$ ls /content/work/img6608/ /content/work/img6608/run/geometry | head -20; ls /content/work/img6608/project/originals | wc -l; python -c "import pycolmap; print(pycolmap.__version__)" 2>&1 | tail -1
+/content/work/img6608/:
+artifixer
+config.json
+enhance
+progress.jsonl
+project
+results.zip
+run
+stages
+
+/content/work/img6608/run/geometry:
+cameras.json
+depth_00.npz
+depth_00.png
+depth_01.npz
+depth_01.png
+depth_02.npz
+depth_02.png
+depth_03.npz
+depth_03.png
+128
+ModuleNotFoundError: No module named 'pycolmap'
