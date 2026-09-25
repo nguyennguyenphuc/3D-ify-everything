@@ -1,0 +1,8 @@
+$ pip install -q pycolmap==3.10.0 pyceres==2.3 2>&1 | tail -3; pip install -q "git+https://github.com/jytime/LightGlue.git#egg=lightglue" trimesh 2>&1 | tail -2; python -c "import pycolmap, lightglue, trimesh; print(\"pycolmap\", pycolmap.__version__); print(hasattr(pycolmap, \"bundle_adjustment\"))"
+ERROR: Could not find a version that satisfies the requirement pycolmap==3.10.0 (from versions: 3.12.0, 3.12.1, 3.12.3, 3.12.4, 3.12.5, 3.12.6, 3.13.0, 3.14.0.dev0, 4.0.0, 4.0.1, 4.0.2, 4.0.3, 4.0.4, 4.1.0, 4.1.1, 4.2.0.dev0, 4.2.0, 4.3.0.dev0)
+ERROR: No matching distribution found for pycolmap==3.10.0
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+    import pycolmap, lightglue, trimesh; print("pycolmap", pycolmap.__version__); print(hasattr(pycolmap, "bundle_adjustment"))
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ModuleNotFoundError: No module named 'pycolmap'

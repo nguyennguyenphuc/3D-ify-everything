@@ -1,0 +1,24 @@
+{
+  "id": "20260925-073447-probe-pycolmap-334b",
+  "state": "failed",
+  "cmd": "pip install -q pycolmap==3.10.0 pyceres==2.3 2>&1 | tail -3; pip install -q \"git+https://github.com/jytime/LightGlue.git#egg=lightglue\" trimesh 2>&1 | tail -2; python -c \"import pycolmap, lightglue, trimesh; print(\\\"pycolmap\\\", pycolmap.__version__); print(hasattr(pycolmap, \\\"bundle_adjustment\\\"))\"",
+  "commit": "e5baa9aebf6a16043c9978de1ea3dfb733150161",
+  "started": "2026-09-25T07:35:01Z",
+  "finished": "2026-09-25T07:35:16Z",
+  "elapsed_seconds": 15,
+  "exit_code": 1,
+  "error": null,
+  "gpu": {
+    "name": "NVIDIA A100-SXM4-80GB",
+    "memory_total_mib": 81920,
+    "memory_used_mib": 0,
+    "utilization": 0
+  },
+  "log_total_lines": 8,
+  "tail_start": 0,
+  "branch": "colab-runs/20260925-073447-probe-pycolmap-334b",
+  "published_commit": "a10ed8236f35d298d4558c26f2f3bfcddc1c2816",
+  "release": null,
+  "assets": [],
+  "updated": "2026-09-25T07:35:16Z"
+}
