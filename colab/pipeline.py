@@ -251,6 +251,126 @@ def reconstruct(cfg, layout, paths, selection, log):
     return stats
 
 
+# Pose refinement: VGGT's official BA (demo_colmap.py --use_ba) -------------------
+BA_PYTHON = '3.11'  # demo_colmap needs pycolmap==3.10, which has no wheels for Colab's Python 3.13
+
+
+def read_colmap(sparse):
+    """Legacy COLMAP binary model (what demo_colmap/pycolmap 3.10 and studio.geometry.write_colmap write).
+
+    Returns {image name: {'w2c': 3x4, 'K': 3x3, 'wh': [w, h]}}; PINHOLE / SIMPLE_PINHOLE cameras only.
+    """
+    import struct
+    from scipy.spatial.transform import Rotation
+    sparse = Path(sparse)
+    cams = {}
+    with (sparse/'cameras.bin').open('rb') as f:
+        for _ in range(struct.unpack('<Q', f.read(8))[0]):
+            cid, model, w, h = struct.unpack('<iiQQ', f.read(24))
+            n = {0: 3, 1: 4}.get(model)
+            if n is None: raise ValueError(f'Camera model {model} chưa hỗ trợ (chỉ PINHOLE/SIMPLE_PINHOLE)')
+            p = struct.unpack(f'<{n}d', f.read(8 * n))
+            fx, fy, cx, cy = (p[0], p[0], p[1], p[2]) if n == 3 else p
+            cams[cid] = {'K': np.array([[fx, 0, cx], [0, fy, cy], [0, 0, 1.]]), 'wh': [int(w), int(h)]}
+    images = {}
+    with (sparse/'images.bin').open('rb') as f:
+        for _ in range(struct.unpack('<Q', f.read(8))[0]):
+            _, qw, qx, qy, qz, tx, ty, tz, cid = struct.unpack('<i4d3di', f.read(64))
+            name = b''
+            while (ch := f.read(1)) != b'\0': name += ch
+            f.seek(24 * struct.unpack('<Q', f.read(8))[0], 1)
+            R = Rotation.from_quat([qx, qy, qz, qw]).as_matrix()
+            images[name.decode()] = {'w2c': np.column_stack([R, [tx, ty, tz]]), **cams[cid]}
+    return images
+
+
+def umeyama(src, dst):
+    """Similarity (s, R, t) minimising |s R src + t - dst|² (Umeyama 1991)."""
+    mu_s, mu_d = src.mean(0), dst.mean(0)
+    a, b = src - mu_s, dst - mu_d
+    U, S, Vt = np.linalg.svd(b.T @ a / len(src))
+    D = np.diag([1, 1, np.sign(np.linalg.det(U @ Vt))])
+    R = U @ D @ Vt
+    s = np.trace(np.diag(S) @ D) / (a ** 2).sum(1).mean()
+    return s, R, mu_d - s * R @ mu_s
+
+
+def apply_ba(cameras, refined, min_registered=.8, max_residual=.05):
+    """Move BA poses/intrinsics into the feed-forward VGGT frame (so depth maps and points still line up).
+
+    cameras: cameras.json entries (mutated in place on success). refined: read_colmap() output keyed by image name.
+    Returns stats; 'applied' is False when too few images registered or the alignment does not fit.
+    """
+    from studio.geometry import camera_to_viewer
+    pairs = [(c, refined[c['name']]) for c in cameras if c['name'] in refined]
+    stats = {'registered': len(pairs), 'images': len(cameras), 'applied': False}
+    if len(pairs) < max(3, min_registered * len(cameras)): return dict(stats, reason='quá ít ảnh được BA đăng ký')
+    center = lambda E: -E[:, :3].T @ E[:, 3]
+    ff = np.array([center(np.asarray(c['w2c'], float)) for c, _ in pairs])
+    ba = np.array([center(r['w2c']) for _, r in pairs])
+    s, R, t = umeyama(ba, ff)
+    spread = np.linalg.norm(ff - ff.mean(0), axis=1).max() or 1.0
+    residual = float(np.sqrt(((s * ba @ R.T + t - ff) ** 2).sum(1).mean()) / spread)
+    stats.update(scale=float(s), residual=residual)
+    if residual > max_residual: return dict(stats, reason=f'pose BA lệch quá xa pose VGGT (residual {residual:.3f})')
+    rot_change = []
+    for c, r in pairs:
+        E = r['w2c']
+        # x_cam = E [x_ba;1] and x_ba = Rᵀ(x_ff - t)/s; scaling camera coords by s leaves projections unchanged.
+        new = np.column_stack([E[:, :3] @ R.T, s * E[:, 3] - E[:, :3] @ R.T @ t])
+        old = np.asarray(c['w2c'], float)
+        rot_change.append(float(np.degrees(np.arccos(np.clip((np.trace(new[:, :3] @ old[:, :3].T) - 1) / 2, -1, 1)))))
+        sx, sy = c['wh'][0] / r['wh'][0], c['wh'][1] / r['wh'][1]
+        K = np.diag([sx, sy, 1.]) @ r['K']
+        c.update(w2c=new.tolist(), K=K.tolist(), viewer_c2w=camera_to_viewer(new).tolist(), pose_source='vggt+ba')
+    return dict(stats, applied=True, max_rotation_change_deg=max(rot_change), mean_rotation_change_deg=float(np.mean(rot_change)))
+
+
+def ba_python(cache, log):
+    """Python 3.11 venv with the VGGT demo stack (torch, pycolmap 3.10, pyceres, LightGlue); built once per runtime."""
+    env = Path('/content/ba-env') if ON_COLAB else cache/'ba-env'
+    py = env/'bin'/'python'
+    if py.exists(): return py
+    uv_env = dict(os.environ, UV_CACHE_DIR=str(cache/'uv'))
+    sh([sys.executable, '-m', 'pip', 'install', '--quiet', 'uv'], log)
+    sh([sys.executable, '-m', 'uv', 'venv', '--python', BA_PYTHON, str(env)], log, env=uv_env)
+    pip = [sys.executable, '-m', 'uv', 'pip', 'install', '--python', str(py)]
+    sh(pip + ['torch==2.5.1', 'torchvision==0.20.1', '--index-url', 'https://download.pytorch.org/whl/cu124'], log, env=uv_env)
+    sh(pip + ['numpy<2', 'pillow', 'huggingface_hub', 'einops', 'safetensors', 'trimesh', 'scipy', 'opencv-python-headless',
+              'hydra-core', 'omegaconf', 'requests', 'pycolmap==3.10.0', 'pyceres==2.3',
+              'lightglue @ git+https://github.com/jytime/LightGlue.git'], log, env=uv_env)
+    return py
+
+
+def refine_poses(layout, log, cache=None):
+    """Run VGGT's demo_colmap.py --use_ba on the training images and fold the result into cameras.json."""
+    cache = cache or cache_root()
+    run = layout['run']
+    camera_path = run/'geometry'/'cameras.json'
+    data = json.loads(camera_path.read_text())
+    scene = run/'ba'
+    if scene.exists(): shutil.rmtree(scene)
+    (scene/'images').mkdir(parents=True)
+    for c in data['cameras']: shutil.copy2(run/'images'/c['name'], scene/'images'/c['name'])
+    env = dict(model_env(cache), TORCH_HOME=str(cache/'torch'), PYTHONPATH=str(VENDOR/'vggt'))
+    try:
+        py = ba_python(cache, log)
+        log(f'VGGT + bundle adjustment trên {len(data["cameras"])} ảnh (demo_colmap.py --use_ba)', stage='pose-ba')
+        sh([str(py), str(REPO/'colab'/'vggt_ba.py'), '--weights', str(cache/'models'/'vggt'/'model.pt'), '--',
+            '--scene_dir', str(scene), '--use_ba', '--shared_camera', '--camera_type', 'PINHOLE'], log, cwd=VENDOR/'vggt', env=env)
+        stats = apply_ba(data['cameras'], read_colmap(scene/'sparse'))
+    except (RuntimeError, OSError, ValueError) as e:
+        stats = {'applied': False, 'reason': str(e)[-500:]}
+    if stats['applied']:
+        camera_path.write_text(json.dumps(data, indent=2))
+        log(f'Pose BA áp dụng: {stats["registered"]}/{stats["images"]} ảnh, xoay tối đa {stats["max_rotation_change_deg"]:.2f}°, '
+            f'residual {stats["residual"]:.4f}', stage='pose-ba')
+    else:
+        log(f'Giữ pose VGGT gốc: {stats.get("reason")}', stage='pose-ba')
+    (run/'geometry'/'pose-ba.json').write_text(json.dumps(stats, indent=2, ensure_ascii=False))
+    return stats
+
+
 # ArtiFixer scene + trajectory -----------------------------------------------
 def load_cameras(run):
     data = json.loads((run/'geometry'/'cameras.json').read_text())['cameras']
@@ -716,6 +836,7 @@ def run(args):
                 if 'inputs' not in state: raise SystemExit('Chưa có kết quả stage inputs; chạy --stages inputs trước')
                 sel = state['inputs']['selection'] or {'images': [{'id': str(i)} for i in range(len(state['inputs']['images']))]}
                 state[stage] = reconstruct(cfg, layout, [Path(p) for p in state['inputs']['images']], sel, log)
+                if cfg.get('pose_ba'): state[stage]['pose_ba'] = refine_poses(layout, log)
         elif stage == 'artifixer':
             state[stage] = fake_artifixer(cfg, layout, log) if cfg['fake'] else run_artifixer(cfg, layout, log)
         elif stage == 'package':
@@ -838,6 +959,7 @@ def build_parser():
         p.add_argument('--caption', default=DEFAULT_CAPTION)
         p.add_argument('--metric-scale', dest='metric_scale', type=float, default=None)
         p.add_argument('--low-memory', dest='low_memory', action='store_true')
+        p.add_argument('--pose-ba', dest='pose_ba', action='store_true', help='tinh chỉnh pose bằng BA của VGGT (demo_colmap)')
         p.add_argument('--fake', action='store_true')
         p.add_argument('--force', action='store_true', help='xoá kết quả cũ của scene này')
     return parser

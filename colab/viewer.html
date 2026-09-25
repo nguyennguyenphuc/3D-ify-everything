@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Courtyard Tour</title>
+<title>Tham quan 3D</title>
 <style>
 :root{--bg:#f4f4f1;--panel:#ffffff;--ink:#1c1f1e;--muted:#5d6461;--line:#d9dcd8;--accent:#2f6f5e;--canvas:#1a1d1c;--glass:rgba(20,23,22,.72);--glass-ink:#f2f4f3}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1211;--panel:#171b1a;--ink:#e8ebe9;--muted:#9aa39f;--line:#2a302e;--accent:#6cc3a8;--canvas:#101312}}
@@ -49,7 +49,7 @@ dd{margin:0;color:var(--ink);overflow-wrap:anywhere}
 </head>
 <body>
 <div id="stage">
-  <div id="title" class="glass">Courtyard · tham quan 3D</div>
+  <div id="title" class="glass">Tham quan 3D</div>
   <div id="status" class="glass" role="status">Đang tải…</div>
   <div id="models" class="glass"><select id="model" aria-label="Mô hình">
     <option value="splat.ply" data-kind="splat">Splat ArtiFixer3D</option>
@@ -92,6 +92,7 @@ if(location.protocol==='file:'){status('Trình duyệt chặn đọc file khi m�
 
 const metrics=await json('metrics.json')||{}, cams=((await json('cameras.json'))||{}).cameras||[], sceneInfo=await json('scene.json');
 const files=new Set(metrics.files||[]);
+if(metrics.name){$('title').textContent=`${metrics.name} · tham quan 3D`;document.title=`${metrics.name} · tham quan 3D`}
 for(const f of ['splat.ply','baseline.ply','points.ply']) if(!files.has(f)&&await exists(f)) files.add(f);
 if(!cams.length){status('Thiếu cameras.json: không dựng được điểm tham quan.');throw new Error('no cameras')}
 

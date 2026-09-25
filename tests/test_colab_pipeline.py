@@ -138,3 +138,33 @@ def test_free_space_drops_gaussians_in_front_of_the_surface(tmp_path):
     behind_one_view = np.array([[3.0, 0, 3.0]])  # outside every frustum but one: not enough evidence
     drop = pipeline.free_space(np.vstack([wall, fog, behind_one_view]), cameras, tmp_path)
     assert drop.tolist() == [False, False, True, True, False]
+
+
+def test_ba_poses_are_aligned_back_into_the_vggt_frame(work, tmp_path):
+    from scipy.spatial.transform import Rotation
+    from studio.geometry import write_colmap
+    layout, cameras = synthetic_cameras(work)
+    cams = json.loads((layout['run']/'geometry'/'cameras.json').read_text())['cameras']
+    # The BA model lives in its own frame: scaled x2, rotated, shifted; one pose slightly refined.
+    s, R, t = 2.0, Rotation.from_euler('xyz', [10, -20, 30], degrees=True).as_matrix(), np.array([1., -2, .5])
+    ba = []
+    for k, c in enumerate(cams):
+        E = np.asarray(c['w2c'], float)
+        Rc, tc = E[:, :3] @ R.T, s * E[:, 3] - E[:, :3] @ R.T @ t   # same camera expressed in the BA frame
+        if k == 2:  # refine the orientation only; the camera centre stays put
+            centre = -Rc.T @ tc
+            Rc = Rotation.from_euler('y', .5, degrees=True).as_matrix() @ Rc
+            tc = -Rc @ centre
+        K = np.asarray(c['K'], float) * [[1.01], [1.01], [1]]
+        ba.append({'name': c['name'], 'wh': c['wh'], 'K': K.tolist(), 'w2c': np.column_stack([Rc, tc]).tolist()})
+    write_colmap(tmp_path, ba, np.zeros((1, 3)), np.zeros((1, 3), np.uint8), np.array([[0, 1., 1.]]))
+    refined = pipeline.read_colmap(tmp_path/'sparse'/'0')
+    assert set(refined) == {c['name'] for c in cams} and np.allclose(refined['00.png']['w2c'], ba[0]['w2c'])
+    stats = pipeline.apply_ba(cams, refined)
+    assert stats['applied'] and abs(stats['scale'] - .5) < 1e-6 and stats['residual'] < 1e-6
+    assert .45 < stats['max_rotation_change_deg'] < .55
+    # Untouched cameras come back to their original pose; intrinsics follow the BA estimate.
+    orig = json.loads((layout['run']/'geometry'/'cameras.json').read_text())['cameras']
+    assert np.allclose(cams[0]['w2c'], orig[0]['w2c'], atol=1e-6) and cams[0]['pose_source'] == 'vggt+ba'
+    assert np.isclose(cams[0]['K'][0][0], orig[0]['K'][0][0] * 1.01)
+    assert not pipeline.apply_ba(orig, {k: v for k, v in list(refined.items())[:2]})['applied']
