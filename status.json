@@ -1,0 +1,45 @@
+{
+  "id": "20260925-103132-notebook-img6608-cov-42d5",
+  "state": "succeeded",
+  "cmd": "W=/content/work; rm -rf $W/img6608_cov && cp -r $W/img6608_hq $W/img6608_cov && rm -rf $W/img6608_cov/artifixer $W/img6608_cov/enhance $W/img6608_cov/results.zip $W/img6608_cov/stages/artifixer.json $W/img6608_cov/stages/package.json && pip install -q papermill && papermill colab/video_tour.ipynb \"$COLAB_RELEASE_DIR/video_tour_IMG_6608_cov.ipynb\" -k python3 --log-output -p VIDEO \"$COLAB_INPUT_DIR/IMG_6608.MOV\" -p NAME img6608_cov -p TARGET_FRAMES 64 -p POSE_BA True -p TRAJECTORY coverage -p TRAJECTORY_FRAMES 321",
+  "commit": "aec6bea4b7c5515e8f3623cf41d00eead9d4ad29",
+  "started": "2026-09-25T10:31:48Z",
+  "finished": "2026-09-25T12:50:36Z",
+  "elapsed_seconds": 8421,
+  "exit_code": 0,
+  "error": null,
+  "gpu": {
+    "name": "NVIDIA A100-SXM4-80GB",
+    "memory_total_mib": 81920,
+    "memory_used_mib": 0,
+    "utilization": 0
+  },
+  "log_total_lines": 2354,
+  "tail_start": 2274,
+  "branch": "colab-runs/20260925-103132-notebook-img6608-cov-42d5",
+  "published_commit": "026dce652b8b2254fd7c17f2369ec6d2f683a0b9",
+  "release": "colab-run-20260925-103132-notebook-img6608-cov-42d5",
+  "assets": [
+    {
+      "name": "baseline.ply",
+      "id": 588353645,
+      "size": 190006493
+    },
+    {
+      "name": "results.zip",
+      "id": 588354166,
+      "size": 714713066
+    },
+    {
+      "name": "splat.ply",
+      "id": 588355908,
+      "size": 172932601
+    },
+    {
+      "name": "video_tour_IMG_6608_cov.ipynb",
+      "id": 588356264,
+      "size": 2752934
+    }
+  ],
+  "updated": "2026-09-25T12:52:09Z"
+}
