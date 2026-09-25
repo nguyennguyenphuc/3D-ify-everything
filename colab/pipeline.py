@@ -331,7 +331,8 @@ def ba_python(cache, log):
     env = Path('/content/ba-env') if ON_COLAB else cache/'ba-env'
     py = env/'bin'/'python'
     if py.exists(): return py
-    uv_env = dict(os.environ, UV_CACHE_DIR=str(cache/'uv'))
+    # uv needs file locks, which Google Drive does not provide: keep its cache on the runtime disk.
+    uv_env = dict(os.environ, UV_CACHE_DIR='/content/uv-cache' if ON_COLAB else str(cache/'uv'))
     sh([sys.executable, '-m', 'pip', 'install', '--quiet', 'uv'], log)
     sh([sys.executable, '-m', 'uv', 'venv', '--python', BA_PYTHON, str(env)], log, env=uv_env)
     pip = [sys.executable, '-m', 'uv', 'pip', 'install', '--python', str(py)]
