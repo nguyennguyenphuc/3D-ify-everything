@@ -145,6 +145,7 @@ Chạy tuần tự từ trên xuống; mỗi bước lưu kết quả, nên ch�
 |---|---|---|---|
 | 1 | FFmpeg + ORB/RANSAC (OpenCV) | `studio/sources.py`, `studio/selection.py` | Trích frame, bỏ ảnh mờ/trùng, kiểm tra các frame liền nhau có vùng chung |
 | 2 | **VGGT-1B** (Meta) | [`facebook/VGGT-1B`](https://huggingface.co/facebook/VGGT-1B), repo `facebookresearch/vggt` | Một lần suy luận cho mọi frame: vị trí camera + depth → point cloud + COLMAP |
+| 2b | VGGSfM tracker + **pycolmap bundle adjustment** (`demo_colmap.py --use_ba` của VGGT, môi trường Python 3.11 riêng) | repo `facebookresearch/vggt` | Tinh chỉnh pose camera (`POSE_BA`) |
 | 3a | **3DGUT** (3DGRUT, NVIDIA), chiến lược MCMC | submodule `3DGRUT-ArtiFixer` của ArtiFixer | Train Gaussian Splat gốc từ ảnh thật (train riêng cho cảnh này, không có trọng số sẵn) |
 | 3b | **MoGe-2** (Microsoft) | `microsoft/MoGe` | Ước lượng scale theo mét cho điều kiện camera của ArtiFixer |
 | 3c | Text encoder **umt5** của Wan2.1 | `Wan-AI/Wan2.1-T2V-1.3B-Diffusers` | Mã hoá một caption cố định (thay Qwen3-VL-30B của ArtiFixer) |
@@ -153,7 +154,9 @@ Chạy tuần tự từ trên xuống; mỗi bước lưu kết quả, nên ch�
 | 4 | Cắt gọn + viewer tham quan | `colab/pipeline.py`, `colab/viewer.html` (Three.js + Spark) | Bỏ Gaussian ngoài vùng quay, floater; tour bấm-để-đi kiểu Matterport |
 
 **Có dùng [ArtiFixer](https://github.com/nv-tlabs/ArtiFixer):** có, bước 3 (prep 3DGUT, inference 1.3B, ArtiFixer3D).
-**Không dùng:** thư viện **nerfstudio** (chỉ ghi file `transforms.json` theo định dạng của nó, không import nerfstudio), COLMAP SfM (pose lấy từ VGGT), OpenSplat (chỉ app Mac), Qwen3-VL.
+**Không dùng:** thư viện **nerfstudio** (chỉ ghi file `transforms.json` theo định dạng của nó, không import nerfstudio), COLMAP SfM đầy đủ (pose lấy từ VGGT, chỉ dùng bundle adjustment của pycolmap), OpenSplat (chỉ app Mac), Qwen3-VL.
+
+**Viewer:** khi đứng tại một điểm, viewer hiện **ảnh gốc** của frame đó (như Matterport hiện ảnh 360°); splat dùng cho phần ngoài khung ảnh, lúc di chuyển, Dollhouse (cắt trần) và Mặt bằng.
 
 ## Yêu cầu và thời gian
 - Runtime **GPU A100 80 GB hoặc H100** (+ High-RAM). A100 40 GB: bật `LOW_MEMORY`.
@@ -170,6 +173,8 @@ ARTIFIXER3D_STEPS = 30000  #@param {{type:"integer"}}
 #@markdown Giảm `ARTIFIXER3D_STEPS` (vd 15000) để nhanh hơn ~1 giờ, đổi lại chất lượng thấp hơn.
 TRAJECTORY_FRAMES = 81  #@param {{type:"integer"}}
 LOW_MEMORY = False  #@param {{type:"boolean"}}
+POSE_BA = True  #@param {{type:"boolean"}}
+#@markdown `POSE_BA`: tinh chỉnh pose camera bằng bundle adjustment chính thức của VGGT (thêm ~5 phút, ảnh nét hơn khi pose lệch).
 REPO = "{REPO}"  #@param {{type:"string"}}
 BRANCH = "{BRANCH}"  #@param {{type:"string"}}'''
 
@@ -224,7 +229,7 @@ def grid(paths, cols=8, width=1600, labels=None):
 BASE = Path("/content/work")/NAME
 RUN_ARGS = ["--source", "video", "--input", VIDEO, "--name", NAME, "--target-frames", TARGET_FRAMES,
             "--reconstruction-steps", RECONSTRUCTION_STEPS, "--artifixer3d-steps", ARTIFIXER3D_STEPS,
-            "--trajectory-frames", TRAJECTORY_FRAMES] + (["--low-memory"] if LOW_MEMORY else [])
+            "--trajectory-frames", TRAJECTORY_FRAMES] + (["--low-memory"] if LOW_MEMORY else []) + (["--pose-ba"] if POSE_BA else [])
 pipeline("check")
 pipeline("setup")'''
 
@@ -240,6 +245,11 @@ grid([BASE/"project"/m["thumbnail"] for m in sel["images"]],
 VIDEO_STEP2 = '''#@title 2 · VGGT-1B: vị trí camera + depth trong một lần suy luận
 pipeline("run", *RUN_ARGS, "--stages", "vggt")
 geo = json.loads((BASE/"run"/"geometry"/"metrics.json").read_text())
+ba_path = BASE/"run"/"geometry"/"pose-ba.json"
+if ba_path.exists():
+    ba = json.loads(ba_path.read_text())
+    print("Bundle adjustment:", f"{ba['registered']}/{ba['images']} ảnh, chỉnh hướng camera trung bình {ba['mean_rotation_change_deg']:.2f}° (tối đa {ba['max_rotation_change_deg']:.2f}°)"
+          if ba.get("applied") else f"không áp dụng ({ba.get('reason')})")
 print(f"{geo['camera_count']} camera · {geo['point_count']:,} điểm · suy luận {geo['inference_seconds']:.1f} giây · "
       f"VRAM đỉnh {geo['peak_reserved_bytes'] / 2**30:.1f} GB · "
       f"điểm nhất quán giữa các góc nhìn {sum(geo['cross_view_supported_fraction']) / len(geo['cross_view_supported_fraction']):.0%}")
