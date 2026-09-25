@@ -477,11 +477,35 @@ def scene_box(cameras, points, margin=.1):
     low, high = low - pad, high + pad
     return {'axes': axes.tolist(), 'up': axes[2].tolist(), 'center': (axes.T @ ((low + high) / 2)).tolist(),
             'half_size': ((high - low) / 2).tolist(), 'floor': float(np.quantile(p[:, 2], .02)),
-            'sweeps': centers.tolist()}
+            'ceiling': float(np.quantile(p[:, 2], .98)), 'sweeps': centers.tolist()}
 
 
-def tidy_splat(src, dst, box, min_opacity=.05, max_scale=.05, neighbors=8, isolation=5.0):
-    """Drop Gaussians outside ``box``, nearly transparent ones, oversized blobs and isolated floaters."""
+def free_space(xyz, cameras, depth_dir, margin=.85, min_views=2):
+    """True for Gaussians seen in front of the VGGT surface (z < margin·depth) by at least ``min_views`` cameras.
+
+    Such Gaussians float in space every camera saw through, the typical fog between the viewer and a wall.
+    depth_XX.npz and model_K are at VGGT model resolution, in the same world units as w2c.
+    """
+    from studio.geometry import project
+    hits = np.zeros(len(xyz), np.int32)
+    for i, c in enumerate(cameras):
+        path = Path(depth_dir)/f'depth_{i:02}.npz'
+        if not path.exists() or 'model_K' not in c: continue
+        with np.load(path) as d: depth, valid = d['depth'], d['valid']
+        pix, z = project(xyz, np.asarray(c['model_K'], float), np.asarray(c['w2c'], float))
+        h, w = depth.shape
+        ok = np.isfinite(pix).all(1) & (z > 0)
+        uv = np.rint(np.where(ok[:, None], pix, -1)).astype(np.int64)
+        ok &= (uv[:, 0] >= 0) & (uv[:, 0] < w) & (uv[:, 1] >= 0) & (uv[:, 1] < h)
+        idx = np.flatnonzero(ok)
+        u, v = uv[idx, 0], uv[idx, 1]
+        front = valid[v, u] & (z[idx] < margin * depth[v, u])
+        hits[idx[front]] += 1
+    return hits >= min_views
+
+
+def tidy_splat(src, dst, box, min_opacity=.05, max_scale=.05, neighbors=8, isolation=5.0, cameras=None, depth_dir=None):
+    """Drop Gaussians outside ``box``, nearly transparent ones, oversized blobs, isolated and free-space floaters."""
     from plyfile import PlyData, PlyElement
     from scipy.spatial import cKDTree
     from studio.training import validate_splat
@@ -494,6 +518,12 @@ def tidy_splat(src, dst, box, min_opacity=.05, max_scale=.05, neighbors=8, isola
     size = np.exp(np.stack([v[f'scale_{i}'] for i in range(3)], 1).max(1))
     small = size <= max_scale * 2 * np.linalg.norm(half)
     keep = inside & opaque & small
+    floating = 0
+    if cameras and depth_dir and Path(depth_dir).is_dir():
+        idx = np.flatnonzero(keep)
+        drop = free_space(xyz[idx], cameras, depth_dir)
+        floating = int(drop.sum())
+        keep[idx[drop]] = False
     isolated = 0
     if keep.sum() > neighbors * 4:
         pts = xyz[keep]
@@ -509,10 +539,10 @@ def tidy_splat(src, dst, box, min_opacity=.05, max_scale=.05, neighbors=8, isola
     PlyData([PlyElement.describe(kept, 'vertex')], text=False).write(str(tmp))
     tmp.replace(dst)
     return {'before': total, 'after': validate_splat(dst), 'outside_box': int((~inside).sum()),
-            'transparent': int((~opaque).sum()), 'oversized': int((~small).sum()), 'isolated': isolated}
+            'transparent': int((~opaque).sum()), 'oversized': int((~small).sum()), 'floating': floating, 'isolated': isolated}
 
 
-def tidy_dir(folder, keep_full=False, log=None):
+def tidy_dir(folder, keep_full=False, log=None, depth_dir=None):
     """Crop splat.ply/baseline.ply in an enhance folder in place and write scene.json for the viewer."""
     folder = Path(folder)
     cameras = json.loads((folder/'cameras.json').read_text())['cameras']
@@ -523,13 +553,33 @@ def tidy_dir(folder, keep_full=False, log=None):
         target, full = folder/f'{name}.ply', folder/f'{name}.full.ply'
         if not target.exists() and not full.exists(): continue
         if keep_full and not full.exists(): target.replace(full)
-        stats[name] = tidy_splat(full if full.exists() else target, target, box)
+        stats[name] = tidy_splat(full if full.exists() else target, target, box, cameras=cameras, depth_dir=depth_dir)
         if log: log(f'{name}.ply: {stats[name]["before"]:,} → {stats[name]["after"]:,} Gaussian', stage='tidy')
     (folder/'scene.json').write_text(json.dumps(dict(box, tidy=stats), indent=2))
     return stats
 
 
 # Packaging ------------------------------------------------------------------
+def export_photos(layout, enhance, long_side=1920):
+    """Source frames for the viewer's photo mode, named after cameras.json entries (00.png -> photos/00.jpg).
+
+    Same framing as the training images (they are scaled copies), so cameras.json K still applies.
+    """
+    from PIL import Image, ImageOps
+    run, project = layout['run'], layout['project']
+    cameras = json.loads((run/'geometry'/'cameras.json').read_text())['cameras']
+    selection = json.loads((run/'selection.json').read_text()) if (run/'selection.json').exists() else {}
+    items = selection.get('images') or []
+    out = enhance/'photos'; out.mkdir(parents=True, exist_ok=True)
+    for i, c in enumerate(cameras):
+        src = project/items[i]['file'] if i < len(items) and (project/items[i]['file']).exists() else run/'images'/c['name']
+        with Image.open(src) as im:
+            im = ImageOps.exif_transpose(im).convert('RGB')
+            im.thumbnail((long_side, long_side), Image.Resampling.LANCZOS)
+            im.save(out/(Path(c['name']).stem + '.jpg'), quality=90)
+    return len(cameras)
+
+
 def contact_sheet(pairs, dest, width=1600):
     from PIL import Image, ImageDraw
     rows = []
@@ -567,7 +617,8 @@ def package(cfg, layout, result, log):
         shutil.copy2(enhance/'baseline.ply', enhance/'splat.ply')
         metrics['note'] = 'Chưa có ArtiFixer3D; splat.ply là reconstruction 3DGUT gốc'
     if (enhance/'cameras.json').exists() and (enhance/'points.ply').exists():
-        metrics['tidy'] = tidy_dir(enhance, log=log)
+        metrics['tidy'] = tidy_dir(enhance, log=log, depth_dir=run/'geometry')
+    metrics['photos'] = export_photos(layout, enhance)
     pred = Path(result['pred']) if result.get('pred') else None
     pairs = []
     if pred and pred.exists():
@@ -748,7 +799,7 @@ def selftest(args):
     state = run(args)
     enhance = layout_for(re.sub(r'[^A-Za-z0-9_-]+', '-', args.name))['enhance']
     need = ['splat.ply', 'baseline.ply', 'compare.jpg', 'metrics.json', 'trajectory.json', 'index.html', 'points.ply', 'cameras.json',
-            'scene.json']
+            'scene.json', 'photos/00.jpg']
     missing = [n for n in need if not (enhance/n).exists()]
     if missing: raise SystemExit(f'selftest thiếu {missing}')
     print(f'SELFTEST OK · {state["package"]["artifixer3d_ply"]}', flush=True)

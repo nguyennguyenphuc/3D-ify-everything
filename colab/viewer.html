@@ -18,11 +18,15 @@
 #modes button,#models select{font:inherit;font-size:14px;color:inherit;background:transparent;border:0;border-radius:999px;padding:7px 14px;cursor:pointer}
 #modes button[aria-pressed="true"]{background:var(--glass-ink);color:#141716;font-weight:600}
 #models{top:16px;right:16px;padding:2px 6px}
+#toggles{bottom:20px;right:16px;display:flex;gap:2px;padding:4px}
+#toggles button{font:inherit;font-size:14px;color:inherit;background:transparent;border:0;border-radius:999px;padding:7px 14px;cursor:pointer}
+#toggles button[aria-pressed="true"]{background:var(--glass-ink);color:#141716;font-weight:600}
+#toggles button[hidden]{display:none}
 #models select option{color:#141716}
 #hint{bottom:24px;left:50%;transform:translateX(-50%);padding:6px 14px;font-size:13px;pointer-events:none;white-space:nowrap;transition:opacity .4s}
 #status{top:58px;left:16px;padding:4px 12px;font-size:12px;border-radius:8px;max-width:calc(100% - 32px)}
 #status:empty{display:none}
-@media (max-width:640px){#hint{display:none}#modes button{padding:7px 10px}}
+@media (max-width:640px){#hint{display:none}#modes button,#toggles button{padding:7px 10px}#toggles{bottom:72px}}
 main{padding:16px;display:grid;gap:12px;max-width:1200px;margin:0 auto}
 details{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 14px}
 summary{cursor:pointer;font-weight:600}
@@ -56,6 +60,10 @@ dd{margin:0;color:var(--ink);overflow-wrap:anywhere}
     <button data-mode="inside" aria-pressed="true">Tham quan</button>
     <button data-mode="dollhouse" aria-pressed="false">Dollhouse</button>
     <button data-mode="plan" aria-pressed="false">Mặt bằng</button>
+  </div>
+  <div id="toggles" class="glass" role="group" aria-label="Tuỳ chọn">
+    <button id="photo-toggle" aria-pressed="true" hidden title="Hiện ảnh gốc khi đứng tại một điểm">Ảnh gốc</button>
+    <button id="cut-toggle" aria-pressed="false" hidden title="Cắt trần để nhìn vào trong ở Dollhouse/Mặt bằng">Cắt trần</button>
   </div>
   <div id="hint" class="glass">Kéo để nhìn quanh · bấm vòng tròn trên sàn để di chuyển · phím ↑ ↓ ← →</div>
 </div>
@@ -160,15 +168,17 @@ function setMode(mode){
   view.mode=mode; document.querySelectorAll('[data-mode]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.mode===mode));
   $('hint').style.opacity=mode==='inside'?1:0;
   markers.children.forEach(m=>m.visible=mode!=='inside'||m.userData.sweep!==view.sweep);
+  if(typeof updateCut==='function')updateCut();
 }
 function goInside(k,dir){
   const s=sweeps[k]; view.sweep=k; controls.enabled=false; setMode('inside');
   if(dir)setDir(dir);
   const q=lookQuat(s.eye,dirOf(view.yaw,view.pitch));
-  flyTo(s.eye.clone(),q,view.fov,camera.position.distanceTo(s.eye)<1e-6?1:700);
+  showPhoto(null);
+  flyTo(s.eye.clone(),q,view.fov,camera.position.distanceTo(s.eye)<1e-6?1:700,()=>showPhoto(k));
 }
 function goOrbit(mode){
-  controls.enabled=false; setMode(mode);
+  controls.enabled=false; setMode(mode); showPhoto(null);
   const avgFwd=sweeps.reduce((a,s)=>a.add(s.fwd),new THREE.Vector3()); avgFwd.addScaledVector(U,-avgFwd.dot(U));
   if(avgFwd.lengthSq()<1e-9)avgFwd.copy(E1); avgFwd.normalize();
   const pos=mode==='plan'
@@ -237,6 +247,62 @@ addEventListener('keydown',e=>{
     if(best!==null)goInside(best); e.preventDefault()}
 });
 
+// Photo mode (like Matterport's panoramas): at a sweep, show the source frame itself, projected with its own K,
+// so standing still is as sharp as the photo; the splat fills everything outside the frame and all motion.
+function edgeFade(n=256,band=.06){
+  const c=document.createElement('canvas');c.width=c.height=n;const x=c.getContext('2d'),img=x.createImageData(n,n);
+  for(let j=0;j<n;j++)for(let i=0;i<n;i++){const e=Math.min(1,Math.min(i,j,n-1-i,n-1-j)/(n*band)),a=255*e*e*(3-2*e),o=4*(j*n+i);
+    img.data[o]=img.data[o+1]=img.data[o+2]=a;img.data[o+3]=255}
+  x.putImageData(img,0,0);return new THREE.CanvasTexture(c);
+}
+const photoStem=k=>cams[sweeps[k].i].name.replace(/\.[^.]+$/,'');
+const hasPhotos=sweeps.some((s,k)=>files.has(`photos/${photoStem(k)}.jpg`));
+const fade=edgeFade(), texLoader=new THREE.TextureLoader(), photoMeshes=new Map();
+const photo={on:hasPhotos,mesh:null,opacity:0,target:0};
+function photoMesh(k){
+  if(photoMeshes.has(k))return photoMeshes.get(k);
+  const c=cams[sweeps[k].i],[W,H]=c.wh,K=c.K,D=radius*.02;
+  const xL=(-.5-K[0][2])/K[0][0]*D,xR=(W-.5-K[0][2])/K[0][0]*D,yT=(.5+K[1][2])/K[1][1]*D,yB=-(H-.5-K[1][2])/K[1][1]*D;
+  const g=new THREE.PlaneGeometry(xR-xL,yT-yB); g.translate((xL+xR)/2,(yT+yB)/2,-D);
+  const m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({transparent:true,opacity:0,alphaMap:fade,depthTest:false,depthWrite:false}));
+  m.applyMatrix4(new THREE.Matrix4().fromArray(c.viewer_c2w.flat()).transpose()); m.renderOrder=5; m.visible=false;
+  texLoader.load(`photos/${photoStem(k)}.jpg`,t=>{t.colorSpace=THREE.SRGBColorSpace;m.material.map=t;m.material.needsUpdate=true;m.userData.ready=true});
+  scene.add(m); photoMeshes.set(k,m); return m;
+}
+function showPhoto(k){
+  if(photo.mesh){photo.mesh.visible=false;photo.mesh.material.opacity=0}
+  photo.mesh=null;photo.opacity=0;photo.target=0;
+  if(!photo.on||view.mode!=='inside'||k===null||!files.has(`photos/${photoStem(k)}.jpg`))return;
+  photo.mesh=photoMesh(k);photo.mesh.visible=true;photo.target=1;
+}
+function stepPhoto(dt){
+  if(!photo.mesh)return;
+  const t=photo.mesh.userData.ready?photo.target:0;
+  photo.opacity+=(t-photo.opacity)*Math.min(1,dt*5); photo.mesh.material.opacity=photo.opacity;
+}
+$('photo-toggle').hidden=!hasPhotos;
+$('photo-toggle').onclick=()=>{photo.on=!photo.on;$('photo-toggle').setAttribute('aria-pressed',photo.on);showPhoto(photo.on&&!tween?view.sweep:null)};
+
+// Ceiling cut for Dollhouse/Mat bang: a Spark SDF plane hides splats above 85% of the floor-to-ceiling height.
+// On by default only for rooms (sweeps look all around); a facade like courtyard would lose its top.
+const yaws=sweeps.map(s=>Math.atan2(s.fwd.dot(E2),s.fwd.dot(E1))).sort((a,b)=>a-b);
+const maxGap=yaws.length>1?Math.max(...yaws.map((a,i)=>(i?a-yaws[i-1]:a+2*Math.PI-yaws[yaws.length-1]))):2*Math.PI;
+const cut={on:maxGap<Math.PI,edit:null,ok:sceneInfo&&sceneInfo.ceiling!==undefined};
+async function ensureCut(){
+  if(cut.edit||!cut.ok||!spark)return;
+  const {SplatEdit,SplatEditSdf}=await import('@sparkjsdev/spark');
+  const h=floor+.85*(sceneInfo.ceiling-floor);
+  cut.edit=new SplatEdit({rgbaBlendMode:'multiply'});
+  const sdf=new SplatEditSdf({type:'plane',opacity:0});
+  // Plane SDF distance is local z: point +z toward the floor so everything above the plane is "inside" and fades out.
+  sdf.position.copy(center).addScaledVector(U,h-center.dot(U));
+  sdf.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1),U.clone().negate());
+  cut.edit.add(sdf); scene.add(cut.edit); updateCut();
+}
+function updateCut(){if(cut.edit)cut.edit.visible=cut.on&&view.mode!=='inside'}
+$('cut-toggle').hidden=!cut.ok; $('cut-toggle').setAttribute('aria-pressed',cut.on);
+$('cut-toggle').onclick=()=>{cut.on=!cut.on;$('cut-toggle').setAttribute('aria-pressed',cut.on);updateCut()};
+
 // Models --------------------------------------------------------------------------
 let current=null, spark=null;
 async function load(opt){
@@ -252,6 +318,7 @@ async function load(opt){
       current=new THREE.Points(g,new THREE.PointsMaterial({size:2,vertexColors:true,sizeAttenuation:false}));
     }
     scene.add(current); status('');
+    if(opt.dataset.kind==='splat')ensureCut();
   }catch(e){status(`Lỗi tải ${opt.value}: ${e.message||e}`)}
 }
 const model=$('model');
@@ -262,10 +329,10 @@ model.value=first?first.value:''; model.onchange=()=>load(model.selectedOptions[
 // Start inside at the first sweep, looking where that photo looked.
 const s0=sweeps[0]; setDir(s0.fwd); view.fov=THREE.MathUtils.clamp(s0.fov,40,80);
 camera.position.copy(s0.eye); camera.quaternion.copy(lookQuat(s0.eye,s0.fwd)); camera.fov=view.fov; camera.updateProjectionMatrix();
-setMode('inside');
+setMode('inside'); showPhoto(0);
 first?load(first):status('Không có file PLY nào trong thư mục này.');
 // Read-only hook for automated checks (web/verify-viewer.mjs style): ring screen positions and current view.
-window.__tour={state:()=>({mode:view.mode,sweep:view.sweep,moving:!!tween}),
+window.__tour={state:()=>({mode:view.mode,sweep:view.sweep,moving:!!tween,photo:photo.mesh?+photo.opacity.toFixed(2):0,cut:!!(cut.edit&&cut.edit.visible)}),
   rings:()=>{const r=renderer.domElement.getBoundingClientRect();return markers.children.filter(m=>m.visible).map(m=>{
     const p=m.position.clone().project(camera);return[r.left+(p.x+1)/2*r.width,r.top+(1-p.y)/2*r.height,m.userData.sweep,p.z]}).filter(p=>p[3]<1).map(p=>p.slice(0,3))}};
 // Shareable views: #sweep=3 or #mode=dollhouse / #mode=plan.
@@ -273,7 +340,8 @@ const hash=new URLSearchParams(location.hash.slice(1)), k0=+hash.get('sweep');
 if(hash.get('mode')==='dollhouse'||hash.get('mode')==='plan')goOrbit(hash.get('mode'));
 else if(k0>0&&k0<sweeps.length)goInside(k0,sweeps[k0].fwd);
 // Same draw path as web/src/Viewer.tsx: SparkRenderer draws the scene once splats exist.
-renderer.setAnimationLoop(now=>{if(document.hidden)return;stepTween(now);if(controls.enabled)controls.update();spark?spark.render(scene,camera):renderer.render(scene,camera)});
+let last=performance.now();
+renderer.setAnimationLoop(now=>{if(document.hidden)return;const dt=(now-last)/1000;last=now;stepTween(now);stepPhoto(dt);if(controls.enabled)controls.update();spark?spark.render(scene,camera):renderer.render(scene,camera)});
 
 // Details below the tour ------------------------------------------------------------
 const facts={Scene:metrics.name,GPU:metrics.gpu&&metrics.gpu.name,'Điểm tham quan':`${sweeps.length} / ${cams.length} camera`,

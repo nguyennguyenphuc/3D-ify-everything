@@ -124,3 +124,17 @@ def test_single_stage_runs_reuse_finished_stages(work):
     ns = args(name='t4', stages='vggt'); ns.fake, ns.source, ns.force = False, 'video', False
     with pytest.raises(SystemExit):
         pipeline.run(ns)
+
+
+def test_free_space_drops_gaussians_in_front_of_the_surface(tmp_path):
+    K = np.array([[100., 0, 49.5], [0, 100., 49.5], [0, 0, 1]])
+    cameras = []
+    for i, x in enumerate((-.2, 0., .2)):
+        w2c = np.hstack([np.eye(3), [[-x], [0], [0]]])
+        cameras.append({'name': f'{i:02}.png', 'model_K': K.tolist(), 'w2c': w2c.tolist()})
+        np.savez_compressed(tmp_path/f'depth_{i:02}.npz', depth=np.full((100, 100), 4.0), valid=np.ones((100, 100), bool))
+    wall = np.array([[0, 0, 4.0], [.1, .1, 3.95]])
+    fog = np.array([[0, 0, 2.0], [.05, -.05, 1.0]])
+    behind_one_view = np.array([[3.0, 0, 3.0]])  # outside every frustum but one: not enough evidence
+    drop = pipeline.free_space(np.vstack([wall, fog, behind_one_view]), cameras, tmp_path)
+    assert drop.tolist() == [False, False, True, True, False]
