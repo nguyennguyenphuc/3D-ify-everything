@@ -31,7 +31,7 @@ def test_pipeline_commands_in_notebooks_parse():
                        '--reconstruction-steps', '10000', '--artifixer3d-steps', '30000', '--trajectory-frames', '81', '--low-memory'])
     parser.parse_args(['run', '--source', 'video', '--input', '/x.mov', '--name', 'n', '--target-frames', '32',
                        '--reconstruction-steps', '10000', '--artifixer3d-steps', '30000', '--trajectory-frames', '81',
-                       '--low-memory', '--stages', 'inputs'])
+                       '--low-memory', '--stages', 'inputs', '--trajectory', 'coverage', '--pose-ba'])
     parser.parse_args(['setup'])
     parser.parse_args(['check'])
 

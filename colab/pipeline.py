@@ -484,6 +484,106 @@ def make_trajectory(cameras, K, size, frames=81, lateral=.04):
             'frames': out}
 
 
+def look_rotation(forward, up):
+    """OpenCV camera-to-world rotation (x right, y down, z forward) looking along ``forward`` with no roll."""
+    z = forward / np.linalg.norm(forward)
+    y = -up - (-up @ z) * z
+    y /= np.linalg.norm(y)
+    return np.column_stack([np.cross(y, z), y, z])
+
+
+def make_coverage_trajectory(cameras, K, size, up, floor, frames=321, spins=4, spin_frames=48,
+                             inward=.35, bob=.10, pitch_down=-35., pitch_up=15.):
+    """A walk along the sweeps that swings ``inward`` toward the room centre, plus ``spins`` 360° turns made at the
+    innermost points (looking down at the floor and up), as one continuous video.
+
+    Phone captures usually walk the walls; this adds views from inside the room.
+
+    The source-path trajectory only revisits views the photos already cover; ArtiFixer then has nothing to repair
+    where the capture never looked (floor, behind the walker, between sweeps). Every frame here is a target for
+    ArtiFixer and ArtiFixer3D. Cameras stay level (no roll) so the horizon is stable for the video model.
+    """
+    from studio.geometry import camera_to_viewer
+    if frames < 5 or (frames - 1) % 4: raise ValueError('trajectory_frames phải có dạng 4k+1 (vd 321)')
+    up = np.asarray(up, float); up /= np.linalg.norm(up)
+    order = camera_order(cameras)
+    c2w = [np.linalg.inv(np.vstack([cameras[i]['w2c'][:3], [0, 0, 0, 1]])) for i in order]
+    eyes = np.array([T[:3, 3] for T in c2w]); fwd = np.array([T[:3, 2] for T in c2w])
+    n = len(eyes)
+    middle = eyes.mean(0)
+    eye_height = max(float(np.median(eyes @ up)) - floor, 1e-6)
+    e1 = np.cross(up, [1., 0, 0] if abs(up[0]) < .9 else [0, 0, 1.]); e1 /= np.linalg.norm(e1); e2 = np.cross(up, e1)
+    yaw_of = lambda f: math.atan2(f @ e2, f @ e1)
+    pitch_of = lambda f: math.asin(np.clip(f @ up / np.linalg.norm(f), -1, 1))
+    direction = lambda y, p: math.cos(p) * (math.cos(y) * e1 + math.sin(y) * e2) + math.sin(p) * up
+    # Heading along the walk: interpolated yaw/pitch of the source photos (unwrapped so it never spins backwards).
+    yaws = np.unwrap([yaw_of(f) for f in fwd]); pitches = np.array([pitch_of(f) for f in fwd])
+    spin_frames = max(8, min(spin_frames, int((frames - 1) * .6) // max(spins, 1))) if spins else 0
+    walk = frames - spins * spin_frames
+    stations = [int(round((j + .5) * walk / spins)) for j in range(spins)]
+    out, k = [], 0
+    for w in range(walk):
+        s = w / max(walk - 1, 1) * (n - 1)
+        u = s / max(n - 1, 1)
+        pos = catmull_rom(eyes, [s])[0] if n > 1 else eyes[0]
+        yaw, pitch = float(np.interp(s, np.arange(n), yaws)), float(np.interp(s, np.arange(n), pitches))
+        toward = middle - pos; toward -= (toward @ up) * up
+        # 0 on the captured path at the ends and between stations, deepest inside the room at each station.
+        depth = inward * (1 - math.cos(2 * math.pi * max(spins, 1) * u)) / 2
+        pos = pos + depth * toward + bob * eye_height * math.sin(2 * math.pi * 2 * u) * up
+        views = [(pos, yaw, pitch)]
+        if k < spins and w == stations[k]:
+            # Turn a full circle on the spot; pitch dips to the floor at the middle and looks up at the quarters.
+            for i in range(1, spin_frames + 1):
+                t = i / (spin_frames + 1)
+                target = math.radians(pitch_down + (pitch_up - pitch_down) * (1 - math.cos(4 * math.pi * t)) / 2)
+                views.append((pos, yaw + 2 * math.pi * (3 * t * t - 2 * t ** 3), pitch + math.sin(math.pi * t) * (target - pitch)))
+            k += 1
+        for p, y, pt in views:
+            R = look_rotation(direction(y, pt), up)
+            out.append({'transform_matrix': camera_to_viewer(np.column_stack([R.T, -R.T @ p])).tolist()})
+    W, H = size
+    return {'camera_model': 'OPENCV', 'w': int(W), 'h': int(H), 'fl_x': float(K[0, 0]), 'fl_y': float(K[1, 1]),
+            'cx': float(K[0, 2]), 'cy': float(K[1, 2]), 'k1': 0.0, 'k2': 0.0, 'p1': 0.0, 'p2': 0.0,
+            'camera_angle_x': float(2 * math.atan(W / (2 * K[0, 0]))), 'camera_angle_y': float(2 * math.atan(H / (2 * K[1, 1]))),
+            'frames': out}
+
+
+def draw_plan(cameras, points, trajectory, dest, size=720):
+    """Top-down sketch: VGGT points (grey), source cameras (blue), trajectory (orange, darker where it looks down)."""
+    from PIL import Image, ImageDraw
+    box = scene_box(cameras, points)
+    axes = np.asarray(box['axes'])
+    c2w = [np.asarray(f['transform_matrix']) @ np.diag([1, -1, -1, 1]) for f in trajectory['frames']]
+    path = np.array([T[:3, 3] for T in c2w]) @ axes.T
+    looks_down = np.array([T[:3, 2] @ axes[2] < -.4 for T in c2w])
+    eyes = np.array([-np.asarray(c['w2c'])[:3, :3].T @ np.asarray(c['w2c'])[:3, 3] for c in cameras]) @ axes.T
+    pts = (points @ axes.T)[::max(1, len(points) // 20000)]
+    lo = np.minimum(pts.min(0), path.min(0))[:2]; hi = np.maximum(pts.max(0), path.max(0))[:2]
+    scale = (size - 40) / max(hi - lo)
+    px = lambda p: tuple(20 + (np.asarray(p)[:2] - lo) * scale)
+    im = Image.new('RGB', (size, size), (16, 19, 18)); d = ImageDraw.Draw(im)
+    for p in pts: d.point(px(p), fill=(90, 96, 94))
+    for a, b, down in zip(path, path[1:], looks_down[1:]):
+        d.line([px(a), px(b)], fill=(236, 120, 40) if not down else (160, 60, 10), width=3)
+    for e in eyes: x, y = px(e); d.ellipse([x - 4, y - 4, x + 4, y + 4], outline=(90, 160, 255), width=2)
+    stops = [i for i in range(1, len(path) - 1) if np.allclose(path[i], path[i - 1]) and not np.allclose(path[i - 1], path[max(i - 2, 0)])]
+    for i in stops: x, y = px(path[i]); d.ellipse([x - 9, y - 9, x + 9, y + 9], outline=(236, 120, 40), width=3)
+    d.text((10, 8), 'xam: diem VGGT  xanh: camera da quay  cam: quy dao ArtiFixer, vong tron = xoay 360 (dam = nhin xuong san)', fill=(230, 230, 230))
+    im.save(dest, quality=88)
+    return dest
+
+
+def trajectory_for(cfg, run, scene):
+    cameras = load_cameras(run)
+    if cfg.get('trajectory', 'coverage') == 'path':
+        return make_trajectory(cameras, np.array(scene['K']), scene['size'], cfg['trajectory_frames'], cfg['trajectory_lateral'])
+    points, _ = read_ply_xyzrgb(run/'geometry'/'points.ply')
+    box = scene_box(cameras, points)
+    return make_coverage_trajectory(cameras, np.array(scene['K']), scene['size'], box['up'], box['floor'],
+                                    cfg['trajectory_frames'], cfg.get('coverage_spins', 4))
+
+
 # ArtiFixer stages -------------------------------------------------------------
 def af(cmd, log, cache, **kw):
     return sh(cmd, log, cwd=ARTIFIXER, env=model_env(cache), **kw)
@@ -497,8 +597,7 @@ def run_artifixer(cfg, layout, log):
     if not (scene_dir/'scene.json').exists():
         build_artifixer_scene(layout['run'], scene_dir, cfg['artifixer_image_max'], log)
     scene = json.loads((scene_dir/'scene.json').read_text())
-    trajectory = make_trajectory(load_cameras(layout['run']), np.array(scene['K']), scene['size'],
-                                 cfg['trajectory_frames'], cfg['trajectory_lateral'])
+    trajectory = trajectory_for(cfg, layout['run'], scene)
     (root/'trajectory.json').write_text(json.dumps(trajectory, indent=2))
     scene_id = layout['scene_id']
     prep = root/'prep'/scene_id
@@ -901,7 +1000,7 @@ def fake_artifixer(cfg, layout, log):
     from PIL import Image, ImageFilter
     root = layout['artifixer']; root.mkdir(parents=True, exist_ok=True)
     scene = build_artifixer_scene(layout['run'], root/'colmap', cfg['artifixer_image_max'], log)
-    traj = make_trajectory(load_cameras(layout['run']), np.array(scene['K']), scene['size'], cfg['trajectory_frames'], cfg['trajectory_lateral'])
+    traj = trajectory_for(cfg, layout['run'], scene)
     (root/'trajectory.json').write_text(json.dumps(traj, indent=2))
     frames = root/'infer'/'fake'/layout['scene_id']/'frames'/'batch_0000'
     for kind in ('pred', 'rendered'): (frames/kind).mkdir(parents=True, exist_ok=True)
@@ -955,7 +1054,10 @@ def build_parser():
         p.add_argument('--artifixer-image-max', dest='artifixer_image_max', type=int, default=960)
         p.add_argument('--reconstruction-steps', dest='reconstruction_steps', type=int, default=10000)
         p.add_argument('--artifixer3d-steps', dest='artifixer3d_steps', type=int, default=30000)
-        p.add_argument('--trajectory-frames', dest='trajectory_frames', type=int, default=81)
+        p.add_argument('--trajectory', default='coverage', choices=['coverage', 'path'],
+                       help='coverage: đi qua các điểm + xoay 360° nhìn cả sàn; path: chỉ đi qua các điểm đã quay (cũ)')
+        p.add_argument('--coverage-spins', dest='coverage_spins', type=int, default=4)
+        p.add_argument('--trajectory-frames', dest='trajectory_frames', type=int, default=321)
         p.add_argument('--trajectory-lateral', dest='trajectory_lateral', type=float, default=.04)
         p.add_argument('--caption', default=DEFAULT_CAPTION)
         p.add_argument('--metric-scale', dest='metric_scale', type=float, default=None)

@@ -30,7 +30,7 @@ def test_selftest_builds_every_output(work, monkeypatch):
     assert metrics['artifixer3d_ply']['dropped'] == 1 and metrics['artifixer3d_ply']['sh_rest'] == 45
     assert (rel/'splat.ply').exists() and (rel/'results.zip').exists()
     assert (pub/'compare.jpg').exists() and (pub/'metrics.json').exists()
-    assert len(list((enhance/'fixed_frames').glob('*.png'))) == 81
+    assert len(list((enhance/'fixed_frames').glob('*.png'))) == 321
 
 
 def test_rerun_skips_finished_stages(work, capsys):
@@ -119,7 +119,7 @@ def test_single_stage_runs_reuse_finished_stages(work):
         ns = args(name='t3', stages=stage); ns.fake, ns.source, ns.force = True, 'synthetic', False
         pipeline.run(ns)
     enhance = work/'work'/'t3'/'enhance'
-    assert len(list((enhance/'fixed_frames').glob('*.png'))) == 81 and (enhance/'compare.jpg').exists()
+    assert len(list((enhance/'fixed_frames').glob('*.png'))) == 321 and (enhance/'compare.jpg').exists()
     assert (enhance/'scene.json').exists()
     ns = args(name='t4', stages='vggt'); ns.fake, ns.source, ns.force = False, 'video', False
     with pytest.raises(SystemExit):
@@ -168,3 +168,33 @@ def test_ba_poses_are_aligned_back_into_the_vggt_frame(work, tmp_path):
     assert np.allclose(cams[0]['w2c'], orig[0]['w2c'], atol=1e-6) and cams[0]['pose_source'] == 'vggt+ba'
     assert np.isclose(cams[0]['K'][0][0], orig[0]['K'][0][0] * 1.01)
     assert not pipeline.apply_ba(orig, {k: v for k, v in list(refined.items())[:2]})['applied']
+
+
+def test_coverage_trajectory_turns_around_and_looks_at_the_floor(work):
+    layout, cameras = synthetic_cameras(work)
+    points, _ = pipeline.read_ply_xyzrgb(layout['run']/'geometry'/'points.ply')
+    box = pipeline.scene_box(cameras, points)
+    up = np.asarray(box['up'])
+    K = pipeline.shared_intrinsics(cameras, (320, 240))
+    traj = pipeline.make_coverage_trajectory(cameras, K, (320, 240), up, box['floor'], frames=321, spins=4)
+    assert len(traj['frames']) == 321 and traj['camera_model'] == 'OPENCV'
+    c2w = [np.asarray(f['transform_matrix']) @ np.diag([1, -1, -1, 1]) for f in traj['frames']]  # back to OpenCV
+    fwd = np.array([T[:3, 2] for T in c2w]); pos = np.array([T[:3, 3] for T in c2w])
+    for T in c2w:
+        R = T[:3, :3]
+        assert np.allclose(R @ R.T, np.eye(3), atol=1e-6) and abs(R[:, 0] @ up) < 1e-6  # level: no roll
+    pitch = np.degrees(np.arcsin(np.clip(fwd @ up, -1, 1)))
+    assert pitch.min() < -25 and pitch.max() > 5
+    e1 = np.cross(up, [1., 0, 0]); e1 /= np.linalg.norm(e1); e2 = np.cross(up, e1)
+    yaw = np.unwrap(np.arctan2(fwd @ e2, fwd @ e1))
+    turns = [np.degrees(yaw[i + 48] - yaw[i]) for i in range(len(yaw) - 48) if np.allclose(pos[i], pos[i + 48])]
+    assert len(turns) >= 4 and max(abs(t) for t in turns) >= 330
+    step_angle = np.degrees(np.arccos(np.clip((fwd[1:] * fwd[:-1]).sum(1), -1, 1)))
+    step_pos = np.linalg.norm(np.diff(pos, axis=0), axis=1)
+    spread = np.linalg.norm(pos - pos.mean(0), axis=1).max()
+    assert step_angle.max() < 12 and step_pos.max() < .15 * spread
+    with pytest.raises(ValueError):
+        pipeline.make_coverage_trajectory(cameras, K, (320, 240), up, box['floor'], frames=320)
+    path = pipeline.trajectory_for({'trajectory': 'path', 'trajectory_frames': 81, 'trajectory_lateral': 0.0},
+                                   layout['run'], {'K': K.tolist(), 'size': [320, 240]})
+    assert path == pipeline.make_trajectory(cameras, K, (320, 240), frames=81, lateral=0.0)

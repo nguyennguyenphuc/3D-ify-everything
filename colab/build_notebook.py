@@ -171,7 +171,9 @@ TARGET_FRAMES = 32  #@param {{type:"integer"}}
 RECONSTRUCTION_STEPS = 10000  #@param {{type:"integer"}}
 ARTIFIXER3D_STEPS = 30000  #@param {{type:"integer"}}
 #@markdown Giảm `ARTIFIXER3D_STEPS` (vd 15000) để nhanh hơn ~1 giờ, đổi lại chất lượng thấp hơn.
-TRAJECTORY_FRAMES = 81  #@param {{type:"integer"}}
+TRAJECTORY = "coverage"  #@param ["coverage", "path"]
+#@markdown `coverage`: quỹ đạo lượn vào trong phòng + 4 vòng xoay 360° nhìn cả sàn để ArtiFixer lấp các góc chưa quay; `path`: chỉ đi lại đường đã quay.
+TRAJECTORY_FRAMES = 321  #@param {{type:"integer"}}
 LOW_MEMORY = False  #@param {{type:"boolean"}}
 POSE_BA = True  #@param {{type:"boolean"}}
 #@markdown `POSE_BA`: tinh chỉnh pose camera bằng bundle adjustment chính thức của VGGT (thêm ~5 phút, ảnh nét hơn khi pose lệch).
@@ -181,6 +183,7 @@ BRANCH = "{BRANCH}"  #@param {{type:"string"}}'''
 VIDEO_SETUP = '''#@title 0 · Clone code, mount Drive, cài đặt model
 import json, os, shlex, subprocess, sys
 from pathlib import Path
+import numpy as np
 from IPython.display import Image, display
 if not Path("/content/drive/MyDrive").is_dir():
     try:
@@ -195,7 +198,7 @@ if not (CODE/".git").exists():
 else:
     subprocess.run(["git", "-C", str(CODE), "fetch", "-q", "origin", BRANCH], check=True)
     subprocess.run(["git", "-C", str(CODE), "reset", "-q", "--hard", f"origin/{BRANCH}"], check=True)
-os.chdir(CODE)
+os.chdir(CODE); sys.path.insert(0, str(CODE))
 print(subprocess.run(["git", "log", "-1", "--oneline"], capture_output=True, text=True).stdout)
 
 def pipeline(*args):
@@ -229,7 +232,7 @@ def grid(paths, cols=8, width=1600, labels=None):
 BASE = Path("/content/work")/NAME
 RUN_ARGS = ["--source", "video", "--input", VIDEO, "--name", NAME, "--target-frames", TARGET_FRAMES,
             "--reconstruction-steps", RECONSTRUCTION_STEPS, "--artifixer3d-steps", ARTIFIXER3D_STEPS,
-            "--trajectory-frames", TRAJECTORY_FRAMES] + (["--low-memory"] if LOW_MEMORY else []) + (["--pose-ba"] if POSE_BA else [])
+            "--trajectory", TRAJECTORY, "--trajectory-frames", TRAJECTORY_FRAMES] + (["--low-memory"] if LOW_MEMORY else []) + (["--pose-ba"] if POSE_BA else [])
 pipeline("check")
 pipeline("setup")'''
 
@@ -261,12 +264,17 @@ VIDEO_STEP3 = '''#@title 3 · 3DGUT → ArtiFixer 1.3B → ArtiFixer3D (bước 
 #@markdown 3b. Train **3DGUT** MCMC (`RECONSTRUCTION_STEPS`), render quỹ đạo; **MoGe-2** ước lượng scale.
 #@markdown 3c. **ArtiFixer 1.3B** sửa các khung render; 3d. **ArtiFixer3D** distill thành splat mới.
 pipeline("run", *RUN_ARGS, "--stages", "artifixer")
+from colab.pipeline import draw_plan, load_cameras, read_ply_xyzrgb
+points, _ = read_ply_xyzrgb(BASE/"run"/"geometry"/"points.ply")
+draw_plan(load_cameras(BASE/"run"), points, json.loads((BASE/"artifixer"/"trajectory.json").read_text()), "/tmp/plan.jpg")
+print("Mặt bằng: camera đã quay (xanh) và quỹ đạo ArtiFixer phải sửa (cam; vòng tròn = xoay 360°)")
+display(Image("/tmp/plan.jpg", width=560))
 af = json.loads((BASE/"stages"/"artifixer.json").read_text())
 pred = Path(af["pred"]); rendered = pred.parent/"rendered"
 frames = sorted(pred.glob("*.png"))
-pick = [frames[i] for i in range(0, len(frames), max(1, len(frames) // 4))][:4]
-print("Hàng trên: render 3DGUT gốc · hàng dưới: ArtiFixer đã sửa")
-grid([rendered/p.name for p in pick] + pick, cols=4)'''
+pick = [frames[int(i)] for i in np.linspace(0, len(frames) - 1, 8)]
+print("Hàng trên: render 3DGUT gốc · hàng dưới: ArtiFixer đã sửa (8 khung trải đều quỹ đạo, gồm cả lúc xoay/nhìn sàn)")
+grid([rendered/p.name for p in pick] + pick, cols=8)'''
 
 VIDEO_STEP4 = '''#@title 4 · Đóng gói: cắt gọn splat, viewer, results.zip
 pipeline("run", *RUN_ARGS, "--stages", "package")
