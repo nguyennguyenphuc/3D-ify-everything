@@ -206,12 +206,13 @@ def grid(paths, cols=8, width=1600, labels=None):
     from PIL import Image as PILImage, ImageDraw
     paths = [Path(p) for p in paths]
     if not paths: print("(không có ảnh)"); return
-    cell = width // cols
+    with PILImage.open(paths[0]) as first: aspect = first.height / first.width
+    cols = min(cols, len(paths))
+    cell = width // cols; h = int(cell * aspect)  # cells follow the frame shape (portrait phone video stays tight)
     ims = []
     for p in paths:
         with PILImage.open(p) as im:
-            im = im.convert("RGB"); im.thumbnail((cell, cell)); ims.append(im)
-    h = max(i.height for i in ims)
+            im = im.convert("RGB"); im.thumbnail((cell, h)); ims.append(im)
     sheet = PILImage.new("RGB", (cell * cols, h * ((len(ims) + cols - 1) // cols)), (16, 19, 18))
     for k, im in enumerate(ims):
         x, y = (k % cols) * cell, (k // cols) * h
