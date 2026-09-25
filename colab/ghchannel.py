@@ -42,7 +42,7 @@ class GitHub:
         self.repo, self.token, self.api, self.uploads, self.timeout = repo, token, api, uploads, timeout
 
     def request(self, method, path, body=None, *, raw=None, accept='application/vnd.github+json',
-                content_type='application/json', base=None, params=None):
+                content_type='application/json', base=None, params=None, timeout=None):
         url = (base or self.api) + path
         if params: url += '?' + urllib.parse.urlencode(params)
         data = raw if raw is not None else (json.dumps(body).encode() if body is not None else None)
@@ -52,7 +52,7 @@ class GitHub:
         for attempt in range(5):
             req = urllib.request.Request(url, data=data, method=method, headers=headers)
             try:
-                with urllib.request.urlopen(req, timeout=self.timeout) as r:
+                with urllib.request.urlopen(req, timeout=timeout or self.timeout) as r:
                     payload = r.read()
                     if accept.endswith('json') and payload: return json.loads(payload)
                     return payload
@@ -152,8 +152,9 @@ class GitHub:
         for asset in release.get('assets', []):
             if asset['name'] == name: self.request('DELETE', self.repo_path(f'/releases/assets/{asset["id"]}'))
         with open(path, 'rb') as f: data = f.read()
+        # Large assets on a slow uplink: allow a long socket timeout for the upload itself.
         return self.request('POST', self.repo_path(f'/releases/{release["id"]}/assets'), raw=data, base=self.uploads,
-                            params={'name': name}, content_type='application/octet-stream')
+                            params={'name': name}, content_type='application/octet-stream', timeout=max(self.timeout, 1800))
 
     def download_asset(self, asset_id, dest):
         """Follow the storage redirect without forwarding the GitHub token."""
