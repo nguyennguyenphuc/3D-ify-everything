@@ -1,0 +1,24 @@
+{
+  "id": "20260925-074644-ba-test-01d2",
+  "state": "succeeded",
+  "cmd": "python - <<PY\nimport shutil\nfrom pathlib import Path\nfrom colab import pipeline as p\nsrc, dst = Path(\"/content/work/img6608\"), Path(\"/content/work/ba-test\")\nshutil.rmtree(dst, ignore_errors=True); (dst/\"run\"/\"geometry\").mkdir(parents=True)\nshutil.copytree(src/\"run\"/\"images\", dst/\"run\"/\"images\")\nshutil.copy2(src/\"run\"/\"geometry\"/\"cameras.json\", dst/\"run\"/\"geometry\"/\"cameras.json\")\nprint(\"RESULT\", p.refine_poses({\"run\": dst/\"run\"}, p.Log()))\nPY",
+  "commit": "e15fd93bf593a05623c4c72283913301bcaabf14",
+  "started": "2026-09-25T07:46:56Z",
+  "finished": "2026-09-25T07:48:56Z",
+  "elapsed_seconds": 120,
+  "exit_code": 0,
+  "error": null,
+  "gpu": {
+    "name": "NVIDIA A100-SXM4-80GB",
+    "memory_total_mib": 81920,
+    "memory_used_mib": 0,
+    "utilization": 0
+  },
+  "log_total_lines": 102,
+  "tail_start": 22,
+  "branch": "colab-runs/20260925-074644-ba-test-01d2",
+  "published_commit": "93031e77c2a61ee912d6d0e57b820adc19f535a7",
+  "release": null,
+  "assets": [],
+  "updated": "2026-09-25T07:48:56Z"
+}

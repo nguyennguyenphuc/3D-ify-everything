@@ -1,0 +1,102 @@
+$ git fetch --quiet origin feature/courtyard-studio
+$ git reset --hard origin/feature/courtyard-studio
+HEAD is now at e15fd93 Redirect only the VGGT-1B download to the cached weights
+$ python - <<PY
+import shutil
+from pathlib import Path
+from colab import pipeline as p
+src, dst = Path("/content/work/img6608"), Path("/content/work/ba-test")
+shutil.rmtree(dst, ignore_errors=True); (dst/"run"/"geometry").mkdir(parents=True)
+shutil.copytree(src/"run"/"images", dst/"run"/"images")
+shutil.copy2(src/"run"/"geometry"/"cameras.json", dst/"run"/"geometry"/"cameras.json")
+print("RESULT", p.refine_poses({"run": dst/"run"}, p.Log()))
+PY
+[07:46:56] pose-ba: VGGT + bundle adjustment trên 32 ảnh (demo_colmap.py --use_ba)
+[07:46:56] cmd: $ /content/ba-env/bin/python /content/3D-ify-everything/colab/vggt_ba.py --weights /content/drive/MyDrive/courtyard-cache/models/vggt/model.pt -- --scene_dir /content/work/ba-test/run/ba --use_ba --shared_camera --camera_type PINHOLE
+/content/ba-env/lib/python3.11/site-packages/lightglue/lightglue.py:24: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @torch.cuda.amp.custom_fwd(cast_inputs=torch.float32)
+Arguments: {'scene_dir': '/content/work/ba-test/run/ba', 'seed': 42, 'use_ba': True, 'max_reproj_error': 8.0, 'shared_camera': True, 'camera_type': 'PINHOLE', 'vis_thresh': 0.2, 'query_frame_num': 8, 'max_query_pts': 4096, 'fine_tracking': True, 'conf_thres_value': 5.0}
+Setting seed as: 42
+Using device: cuda
+Using dtype: torch.bfloat16
+Model loaded
+Loaded 32 images from /content/work/ba-test/run/ba/images
+demo_colmap.py:75: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  with torch.cuda.amp.autocast(dtype=dtype):
+demo_colmap.py:147: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  with torch.cuda.amp.autocast(dtype=dtype):
+Downloading: "https://huggingface.co/facebook/VGGSfM/resolve/main/vggsfm_v2_tracker.pt" to /content/drive/MyDrive/courtyard-cache/torch/hub/checkpoints/vggsfm_v2_tracker.pt
+
+  0%|          | 0.00/186M [00:00<?, ?B/s]
+  0%|          | 128k/186M [00:00<22:02, 148kB/s]
+  6%|▌         | 11.6M/186M [00:00<00:10, 16.8MB/s]
+ 10%|▉         | 18.5M/186M [00:01<00:07, 24.6MB/s]
+ 17%|█▋        | 30.8M/186M [00:01<00:03, 43.5MB/s]
+ 23%|██▎       | 42.9M/186M [00:01<00:02, 60.8MB/s]
+ 33%|███▎      | 62.0M/186M [00:01<00:01, 92.6MB/s]
+ 40%|████      | 75.0M/186M [00:01<00:01, 73.3MB/s]
+ 49%|████▉     | 91.6M/186M [00:01<00:01, 93.4MB/s]
+ 57%|█████▋    | 106M/186M [00:01<00:00, 107MB/s]  
+ 66%|██████▌   | 122M/186M [00:01<00:00, 121MB/s]
+ 73%|███████▎  | 136M/186M [00:02<00:00, 92.4MB/s]
+ 79%|███████▉  | 147M/186M [00:02<00:00, 74.7MB/s]
+ 85%|████████▌ | 159M/186M [00:02<00:00, 83.1MB/s]
+ 92%|█████████▏| 171M/186M [00:02<00:00, 91.8MB/s]
+ 99%|█████████▉| 184M/186M [00:02<00:00, 103MB/s] 
+100%|██████████| 186M/186M [00:02<00:00, 69.7MB/s]
+Downloading: "https://github.com/facebookresearch/dinov2/zipball/main" to /content/drive/MyDrive/courtyard-cache/torch/hub/main.zip
+/content/drive/MyDrive/courtyard-cache/torch/hub/facebookresearch_dinov2_main/dinov2/layers/swiglu_ffn.py:51: UserWarning: xFormers is not available (SwiGLU)
+  warnings.warn("xFormers is not available (SwiGLU)")
+/content/drive/MyDrive/courtyard-cache/torch/hub/facebookresearch_dinov2_main/dinov2/layers/attention.py:33: UserWarning: xFormers is not available (Attention)
+  warnings.warn("xFormers is not available (Attention)")
+/content/drive/MyDrive/courtyard-cache/torch/hub/facebookresearch_dinov2_main/dinov2/layers/block.py:40: UserWarning: xFormers is not available (Block)
+  warnings.warn("xFormers is not available (Block)")
+Downloading: "https://dl.fbaipublicfiles.com/dinov2/dinov2_vitb14/dinov2_vitb14_reg4_pretrain.pth" to /content/drive/MyDrive/courtyard-cache/torch/hub/checkpoints/dinov2_vitb14_reg4_pretrain.pth
+
+  0%|          | 0.00/330M [00:00<?, ?B/s]
+  9%|▉         | 30.2M/330M [00:00<00:00, 316MB/s]
+ 18%|█▊        | 60.5M/330M [00:00<00:00, 311MB/s]
+ 28%|██▊       | 92.9M/330M [00:00<00:00, 324MB/s]
+ 38%|███▊      | 127M/330M [00:00<00:00, 337MB/s] 
+ 49%|████▊     | 161M/330M [00:00<00:00, 344MB/s]
+ 59%|█████▉    | 196M/330M [00:00<00:00, 352MB/s]
+ 70%|██████▉   | 230M/330M [00:00<00:00, 343MB/s]
+ 80%|███████▉  | 263M/330M [00:00<00:00, 340MB/s]
+ 89%|████████▉ | 295M/330M [00:00<00:00, 334MB/s]
+ 99%|█████████▉| 327M/330M [00:01<00:00, 316MB/s]
+100%|██████████| 330M/330M [00:01<00:00, 329MB/s]
+Downloading: "https://github.com/Shiaoming/ALIKED/raw/main/models/aliked-n16.pth" to /content/drive/MyDrive/courtyard-cache/torch/hub/checkpoints/aliked-n16.pth
+
+  0%|          | 0.00/2.61M [00:00<?, ?B/s]
+100%|██████████| 2.61M/2.61M [00:00<00:00, 232MB/s]
+Downloading: "https://github.com/cvg/LightGlue/releases/download/v0.1_arxiv/superpoint_v1.pth" to /content/drive/MyDrive/courtyard-cache/torch/hub/checkpoints/superpoint_v1.pth
+
+  0%|          | 0.00/4.96M [00:00<?, ?B/s]
+100%|██████████| 4.96M/4.96M [00:00<00:00, 155MB/s]
+For faster inference, consider disabling fine_tracking
+Predicting tracks for query frame 0
+Predicting tracks for query frame 28
+Predicting tracks for query frame 1
+Predicting tracks for query frame 3
+Predicting tracks for query frame 2
+Predicting tracks for query frame 4
+Predicting tracks for query frame 5
+Predicting tracks for query frame 7
+I20260925 07:48:39.676256 134450065864512 misc.cc:198] 
+==============================================================================
+Global bundle adjustment
+==============================================================================
+I20260925 07:48:44.051627 134450065864512 bundle_adjustment.cc:866] 
+Bundle adjustment report:
+    Residuals : 372762
+   Parameters : 61207
+   Iterations : 18
+         Time : 4.17952 [s]
+ Initial cost : 2.39922 [px]
+   Final cost : 0.649171 [px]
+  Termination : Convergence
+
+I20260925 07:48:44.051660 134450065864512 timer.cc:91] Elapsed time: 0.073 [minutes]
+Saving reconstruction to /content/work/ba-test/run/ba/sparse
+[07:48:46] pose-ba: Pose BA áp dụng: 32/32 ảnh, xoay tối đa 2.21°, residual 0.0158
+RESULT {'registered': 32, 'images': 32, 'applied': True, 'scale': 0.9223194114811483, 'residual': 0.01582942527199215, 'max_rotation_change_deg': 2.209421666125289, 'mean_rotation_change_deg': 0.6355806170251462}
